@@ -7,6 +7,7 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import nodemailer from "nodemailer";
 import { customAlphabet } from "nanoid";
+import { Resend } from "resend";
 
 /* ---------- app & middleware ---------- */
 const app = express();
@@ -91,38 +92,68 @@ const nano6 = customAlphabet("0123456789", 6);
 const signTemp = (payload) => jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: "15m" });
 const signSession = (payload) => jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: "7d" });
 
+// ============= Email sender abstraction =============
+const mailMode = (process.env.MAIL_MODE || "smtp").toLowerCase();
+const resend =
+  mailMode === "resend" && process.env.RESEND_API_KEY
+    ? new Resend(process.env.RESEND_API_KEY)
+    : null;
+
+async function sendEmail({ to, subject, text, html }) {
+  if (resend) {
+    // Resend path
+    const from = process.env.RESEND_FROM || "BookSwap <onboarding@resend.dev>";
+    const { error } = await resend.emails.send({ from, to, subject, text, html });
+    if (error) throw error;
+    return;
+  }
+
+  // SMTP fallback (Nodemailer)
+  const info = await transporter.sendMail({
+    from: process.env.SMTP_FROM || process.env.SMTP_USER,
+    to, subject, text, html
+  });
+  return info;
+}
+
 /* ---------- 1) Request verification code ---------- */
 app.post("/api/auth/request-code", async (req, res) => {
   let email;
   try {
     email = emailSchema.parse((req.body.email || "").trim().toLowerCase());
   } catch (e) {
-    return res.status(400).json({ error: e.errors?.[0]?.message || "Invalid email" });
+    return res
+      .status(400)
+      .json({ error: e.errors?.[0]?.message || "Invalid email" });
   }
 
-  const code = nano6(); // "483921"
+  // generate & store code
+  const code = nano6();
   const codeHash = await bcrypt.hash(code, 10);
   const expiresAt = new Date(Date.now() + 10 * 60 * 1000);
 
-  await Verification.deleteMany({ email }); // one active at a time
+  await Verification.deleteMany({ email });
   await Verification.create({ email, codeHash, expiresAt });
 
-  const info = await transporter.sendMail({
-    from: process.env.SMTP_FROM || process.env.SMTP_USER,
-    to: email,
-    subject: "Your BookSwap Store verification code",
-    text: `Your code is ${code}. It expires in 10 minutes.`,
-    html: `<p>Your code is <b>${code}</b>. It expires in 10 minutes.</p>`,
-  });
+  // ---------- send email ----------
+  try {
+    await sendEmail({
+      to: email,
+      subject: "Your BookSwap Store verification code",
+      text: `Your code is ${code}. It expires in 10 minutes.`,
+      html: `<p>Your code is <b>${code}</b>. It expires in 10 minutes.</p>`,
+    });
 
-  // optional: log preview URL if using Ethereal
-  if (typeof nodemailer.getTestMessageUrl === "function") {
-    const url = nodemailer.getTestMessageUrl(info);
-    if (url) console.log("✉️  Preview:", url);
+    // success response
+    return res.json({ ok: true, message: "Code sent" });
+  } catch (err) {
+    console.error("EMAIL SEND ERROR:", err);
+    return res
+      .status(502)
+      .json({ error: "Email delivery failed. Please try again later." });
   }
-
-  res.json({ ok: true, message: "Code sent" });
 });
+
 
 /* ---------- 2) Verify code -> short-lived token ---------- */
 app.post("/api/auth/verify-code", async (req, res) => {
