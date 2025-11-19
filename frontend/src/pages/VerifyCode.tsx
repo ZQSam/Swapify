@@ -28,13 +28,17 @@ export default function VerifyCode({
     setErr(null);
     setMsg(null);
     try {
+      setLoading(true);
       const { emailVerifiedToken } = await AuthAPI.verifyCode(
         email,
         code.trim()
       );
       onVerified(emailVerifiedToken);
-    } catch (e: any) {
-      setErr(e.message);
+    } catch (e: unknown) {
+      if (e instanceof Error) setErr(e.message);
+      else setErr("An unexpected error occurred.");
+    } finally {
+      setLoading(false);
     }
   }
 
@@ -42,11 +46,15 @@ export default function VerifyCode({
     setErr(null);
     setMsg(null);
     try {
+      setLoading(true);
       await AuthAPI.requestCode(email);
       setMsg("A new verification code has been sent.");
       setCooldown(30);
-    } catch (e: any) {
-      setErr(e.message);
+    } catch (e: unknown) {
+      if (e instanceof Error) setErr(e.message);
+      else setErr("An unexpected error occurred.");
+    } finally {
+      setLoading(false);
     }
   }
 
