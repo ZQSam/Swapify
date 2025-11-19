@@ -52,7 +52,8 @@ const verificationSchema = new mongoose.Schema(
   {
     email: { type: String, index: true },
     codeHash: String,
-    expiresAt: { type: Date, index: { expires: 0 } }, // TTL set dynamically
+    // TTL index driven by per-document expiresAt value:
+    expiresAt: { type: Date, index: { expires: 0 } },
     consumed: { type: Boolean, default: false },
     attempts: { type: Number, default: 0 },
   },
@@ -61,24 +62,6 @@ const verificationSchema = new mongoose.Schema(
 
 const User = mongoose.model("User", userSchema);
 const Verification = mongoose.model("Verification", verificationSchema);
-
-/* ---------- Mailer ---------- */
-const secure =
-  String(process.env.SMTP_SECURE).toLowerCase() === "true" ||
-  Number(process.env.SMTP_PORT) === 465;
-
-const transporter = nodemailer.createTransport({
-  host: process.env.SMTP_HOST,
-  port: Number(process.env.SMTP_PORT || 587),
-  secure,
-  auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS },
-  connectionTimeout: 15000,   // 15s
-  greetingTimeout: 10000,     // 10s
-});
-
-transporter.verify()
-  .then(() => console.log("SMTP verified ✅", process.env.SMTP_HOST, process.env.SMTP_PORT))
-  .catch(err => console.error("SMTP verify FAILED ❌", err));
 
 /* ---------- Helpers ---------- */
 const emailSchema = z
@@ -92,28 +75,53 @@ const nano6 = customAlphabet("0123456789", 6);
 const signTemp = (payload) => jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: "15m" });
 const signSession = (payload) => jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: "7d" });
 
-// ============= Email sender abstraction =============
+/* ---------- Mail backends (Resend OR SMTP) ---------- */
 const mailMode = (process.env.MAIL_MODE || "smtp").toLowerCase();
+
+// Resend client (used when MAIL_MODE=resend)
 const resend =
   mailMode === "resend" && process.env.RESEND_API_KEY
     ? new Resend(process.env.RESEND_API_KEY)
     : null;
 
+// SMTP transporter (only created/verified in SMTP mode)
+let transporter = null;
+if (mailMode === "smtp") {
+  const secure =
+    String(process.env.SMTP_SECURE).toLowerCase() === "true" ||
+    Number(process.env.SMTP_PORT) === 465;
+
+  transporter = nodemailer.createTransport({
+    host: process.env.SMTP_HOST,
+    port: Number(process.env.SMTP_PORT || 587),
+    secure,
+    auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS },
+    connectionTimeout: 15000,
+    greetingTimeout: 10000,
+  });
+
+  transporter
+    .verify()
+    .then(() => console.log("SMTP verified ✅", process.env.SMTP_HOST, process.env.SMTP_PORT))
+    .catch((err) => console.error("SMTP verify FAILED ❌", err));
+}
+
+// Unified sender
 async function sendEmail({ to, subject, text, html }) {
   if (resend) {
-    // Resend path
     const from = process.env.RESEND_FROM || "BookSwap <onboarding@resend.dev>";
     const { error } = await resend.emails.send({ from, to, subject, text, html });
     if (error) throw error;
     return;
   }
-
-  // SMTP fallback (Nodemailer)
-  const info = await transporter.sendMail({
+  if (!transporter) throw new Error("SMTP transporter not configured");
+  await transporter.sendMail({
     from: process.env.SMTP_FROM || process.env.SMTP_USER,
-    to, subject, text, html
+    to,
+    subject,
+    text,
+    html,
   });
-  return info;
 }
 
 /* ---------- 1) Request verification code ---------- */
@@ -122,9 +130,7 @@ app.post("/api/auth/request-code", async (req, res) => {
   try {
     email = emailSchema.parse((req.body.email || "").trim().toLowerCase());
   } catch (e) {
-    return res
-      .status(400)
-      .json({ error: e.errors?.[0]?.message || "Invalid email" });
+    return res.status(400).json({ error: e.errors?.[0]?.message || "Invalid email" });
   }
 
   // generate & store code
@@ -132,10 +138,9 @@ app.post("/api/auth/request-code", async (req, res) => {
   const codeHash = await bcrypt.hash(code, 10);
   const expiresAt = new Date(Date.now() + 10 * 60 * 1000);
 
-  await Verification.deleteMany({ email });
+  await Verification.deleteMany({ email }); // single active code per email
   await Verification.create({ email, codeHash, expiresAt });
 
-  // ---------- send email ----------
   try {
     await sendEmail({
       to: email,
@@ -143,17 +148,12 @@ app.post("/api/auth/request-code", async (req, res) => {
       text: `Your code is ${code}. It expires in 10 minutes.`,
       html: `<p>Your code is <b>${code}</b>. It expires in 10 minutes.</p>`,
     });
-
-    // success response
     return res.json({ ok: true, message: "Code sent" });
   } catch (err) {
     console.error("EMAIL SEND ERROR:", err);
-    return res
-      .status(502)
-      .json({ error: "Email delivery failed. Please try again later." });
+    return res.status(502).json({ error: "Email delivery failed. Please try again later." });
   }
 });
-
 
 /* ---------- 2) Verify code -> short-lived token ---------- */
 app.post("/api/auth/verify-code", async (req, res) => {
