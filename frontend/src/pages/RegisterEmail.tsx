@@ -38,9 +38,14 @@ export default function RegisterEmail({
   return (
     <AuthCard
       title={
-        <span>
-          Register for <span className="brand">BookSwap</span> Store
-        </span>
+        <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-start", gap: "4px" }}>
+          <span style={{ fontSize: "18px" }}>Register for</span>
+          <span style={{ fontWeight: 700, fontSize: "28px" }}>
+            <span style={{ color: "#FF5F05" }}>BookSwap</span>
+            {" "}
+            <span style={{ color: "#13294B" }}>Store</span>
+          </span>
+        </div>
       }
     >
       <form onSubmit={submit}>

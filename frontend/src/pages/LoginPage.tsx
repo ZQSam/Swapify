@@ -1,21 +1,20 @@
 import { useState } from "react";
+import { useNavigate, Link } from "react-router-dom";
 import { AuthAPI } from "../lib/api";
 import AuthCard from "../components/AuthCard";
+import { useAuth } from "../contexts/AuthContext";
 
 const uiucRegex = /^[a-z0-9._%+-]+@illinois\.edu$/i;
 
-export default function LoginPage({
-  onLoginSuccess,
-  onNavigateToRegister,
-}: {
-  onLoginSuccess: (session: string) => void;
-  onNavigateToRegister: () => void;
-}) {
+export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [err, setErr] = useState<string | null>(null);
   const [msg, setMsg] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+
+  const { login } = useAuth();
+  const navigate = useNavigate();
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -35,11 +34,18 @@ export default function LoginPage({
 
     try {
       setLoading(true);
-      const { session } = await AuthAPI.login(trimmed, password);
+      const { session, user } = await AuthAPI.login(trimmed, password);
       setMsg("Login successful!");
-      // Store session and call callback
-      localStorage.setItem("session", session);
-      setTimeout(() => onLoginSuccess(session), 500);
+
+      login(session, {
+        id: user.id,
+        email: user.email,
+        nickname: user.nickname,
+        averageRating: 0,
+        ratingCount: 0,
+      });
+
+      setTimeout(() => navigate("/"), 500);
     } catch (e: unknown) {
       if (e instanceof Error) {
         setErr(e.message);
@@ -54,9 +60,14 @@ export default function LoginPage({
   return (
     <AuthCard
       title={
-        <span>
-          Sign in to <span className="brand">BookSwap</span> Store
-        </span>
+        <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-start", gap: "4px" }}>
+          <span style={{ fontSize: "18px" }}>Sign in to</span>
+          <span style={{ fontWeight: 700, fontSize: "28px" }}>
+            <span style={{ color: "#FF5F05" }}>BookSwap</span>
+            {" "}
+            <span style={{ color: "#13294B" }}>Store</span>
+          </span>
+        </div>
       }
     >
       <form onSubmit={submit}>
@@ -104,13 +115,9 @@ export default function LoginPage({
           }}
         >
           <span className="meta">Don't have an account?</span>
-          <button
-            type="button"
-            className="btn-link btn"
-            onClick={onNavigateToRegister}
-          >
+          <Link to="/register" className="btn-link btn">
             Create one here
-          </button>
+          </Link>
         </div>
       </form>
     </AuthCard>
