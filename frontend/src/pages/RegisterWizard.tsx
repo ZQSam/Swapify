@@ -1,30 +1,26 @@
 // src/pages/RegisterWizard.tsx
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import RegisterEmail from "./RegisterEmail";
 import VerifyCode from "./VerifyCode";
 import SetCredentials from "./SetCredentials";
 
-export default function RegisterWizard({
-  onRegistrationComplete,
-}: {
-  onRegistrationComplete?: () => void;
-}) {
+export default function RegisterWizard() {
   const [email, setEmail] = useState<string | null>(null);
   const [token, setToken] = useState<string | null>(null);
+  const navigate = useNavigate();
 
   const handleBackFromVerify = () => {
     setToken(null);
-    setEmail(null); // <- this is what moves you back to the first page
+    setEmail(null);
   };
 
-  // Back from SetCredentials -> go to verify step
   const handleBackFromCredentials = () => setToken(null);
 
-  // Done after registration -> you can navigate to / or show success, etc.
   const handleDone = () => {
     setEmail(null);
     setToken(null);
-    onRegistrationComplete?.();
+    navigate("/login");
   };
 
   if (!email) return <RegisterEmail onNext={setEmail} />;
