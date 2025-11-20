@@ -8,7 +8,9 @@
   },
   "scripts": {
     "dev": "nodemon --watch src --ext js,mjs src/index.js",
-    "start": "node src/index.js"
+    "start": "node src/index.js",
+    "test": "vitest",
+    "test:run": "vitest run"
   },
   "keywords": [],
   "author": "",
@@ -28,6 +30,8 @@
     "zod": "^4.1.13"
   },
   "devDependencies": {
-    "nodemon": "^3.1.11"
+    "nodemon": "^3.1.11",
+    "supertest": "^7.1.4",
+    "vitest": "^4.0.15"
   }
 }

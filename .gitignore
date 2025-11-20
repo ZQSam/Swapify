@@ -24,5 +24,9 @@ pnpm-debug.log*
 .vscode/
 .idea/
 
+# tests
+*.test.js
+*.spec.js
+
 /temp
 *.local.json
