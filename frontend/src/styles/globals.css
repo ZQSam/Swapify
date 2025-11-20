@@ -1,0 +1,206 @@
+/* Global Styles - Swapify Design System */
+
+/* CSS Variables */
+:root {
+  /* Primary Colors */
+  --color-primary: #FF5F05;
+  --color-primary-dark: #E54D00;
+  --color-primary-light: #FF7A33;
+
+  /* Navy */
+  --color-navy: #13294B;
+  --color-navy-light: #1E3A5F;
+
+  /* Neutral Colors */
+  --color-gray-50: #F4F4F4;
+  --color-gray-100: #C8C6C7;
+  --color-gray-200: #9C9A9D;
+  --color-gray-300: #707372;
+  --color-gray-900: #252525;
+
+  /* Semantic Colors */
+  --color-error: #C84113;
+  --color-warning: #FCB316;
+  --color-success: #00A14F;
+
+  /* Status Colors */
+  --color-status-available: #00A14F;
+  --color-status-pending: #FCB316;
+  --color-status-sold: #707372;
+
+  /* Typography */
+  --font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --font-header: 32px;
+  --font-sub-header: 24px;
+  --font-body: 16px;
+  --font-caption: 14px;
+  --font-small: 12px;
+  --font-weight-regular: 400;
+  --font-weight-bold: 700;
+
+  /* Spacing */
+  --spacing-xs: 4px;
+  --spacing-sm: 8px;
+  --spacing-md: 16px;
+  --spacing-lg: 24px;
+  --spacing-xl: 32px;
+  --spacing-xxl: 48px;
+
+  /* Border Radius */
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+
+  /* Shadows */
+  --shadow-card: 0 2px 8px rgba(0, 0, 0, 0.08);
+  --shadow-card-hover: 0 4px 16px rgba(0, 0, 0, 0.12);
+  --shadow-input-focus: 0 0 0 3px rgba(255, 95, 5, 0.1);
+
+  /* Heights */
+  --height-header: 64px;
+  --height-button-sm: 32px;
+  --height-button-md: 40px;
+  --height-button-lg: 48px;
+  --height-input: 40px;
+
+  /* Container */
+  --container-max-width: 1200px;
+  --container-padding: 24px;
+}
+
+/* CSS Reset & Base Styles */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  font-family: var(--font-family);
+  font-size: var(--font-body);
+  font-weight: var(--font-weight-regular);
+  line-height: 1.5;
+  color: var(--color-gray-900);
+  background-color: var(--color-gray-50);
+}
+
+/* Typography Base */
+h1, h2, h3, h4, h5, h6 {
+  margin: 0;
+  font-weight: var(--font-weight-bold);
+}
+
+h1 {
+  font-size: var(--font-header);
+}
+
+h2 {
+  font-size: var(--font-sub-header);
+}
+
+p {
+  margin: 0;
+}
+
+a {
+  color: var(--color-primary);
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+a:hover {
+  color: var(--color-primary-dark);
+}
+
+/* Button Reset */
+button {
+  font-family: inherit;
+  font-size: inherit;
+  border: none;
+  background: none;
+  cursor: pointer;
+  padding: 0;
+}
+
+/* Input Reset */
+input,
+textarea,
+select {
+  font-family: inherit;
+  font-size: inherit;
+  border: none;
+  background: none;
+  outline: none;
+}
+
+/* List Reset */
+ul,
+ol {
+  list-style: none;
+}
+
+/* Image Base */
+img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
+
+/* Container */
+.container {
+  max-width: var(--container-max-width);
+  margin: 0 auto;
+  padding: 0 var(--container-padding);
+}
+
+/* Utility Classes */
+.text-primary {
+  color: var(--color-primary);
+}
+
+.text-error {
+  color: var(--color-error);
+}
+
+.text-success {
+  color: var(--color-success);
+}
+
+.text-gray {
+  color: var(--color-gray-300);
+}
+
+.text-bold {
+  font-weight: var(--font-weight-bold);
+}
+
+.text-caption {
+  font-size: var(--font-caption);
+}
+
+.text-small {
+  font-size: var(--font-small);
+}
+
+/* Responsive Breakpoints */
+@media (max-width: 768px) {
+  :root {
+    --container-padding: 16px;
+    --font-header: 28px;
+    --font-sub-header: 20px;
+  }
+}
+
+@media (max-width: 640px) {
+  :root {
+    --font-header: 24px;
+    --font-sub-header: 18px;
+  }
+}
