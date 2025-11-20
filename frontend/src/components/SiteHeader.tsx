@@ -1,3 +1,5 @@
+import { User, LogIn, LogOut } from 'lucide-react';
+
 export default function SiteHeader({
   onLoginClick,
   onRegisterClick,
@@ -14,14 +16,14 @@ export default function SiteHeader({
       <div className="topbar-inner">
         <a className="brand" href="/">
           <span className="brand-strong">BookSwap</span>{" "}
-          <span className="brand-soft">Store</span>
+          <span className="brand-soft" style={{ color: 'var(--color-navy)' }}>Store</span>
         </a>
 
         <nav className="nav">
           {isLoggedIn ? (
             <>
               <a className="nav-item" href="#">
-                <span className="nav-ico">�</span> Profile
+                <User size={18} className="nav-ico" /> Profile
               </a>
               <button
                 className="nav-item"
@@ -33,7 +35,7 @@ export default function SiteHeader({
                   padding: "0",
                 }}
               >
-                <span className="nav-ico">🚪</span> Logout
+                <LogOut size={18} className="nav-ico" /> Logout
               </button>
             </>
           ) : (
@@ -48,7 +50,7 @@ export default function SiteHeader({
                   padding: "0",
                 }}
               >
-                <span className="nav-ico">➡️</span> Login
+                <LogIn size={18} className="nav-ico" /> Login
               </button>
               <button
                 className="nav-item"
@@ -60,7 +62,7 @@ export default function SiteHeader({
                   padding: "0",
                 }}
               >
-                <span className="nav-ico">👤</span> Register
+                <User size={18} className="nav-ico" /> Register
               </button>
             </>
           )}
