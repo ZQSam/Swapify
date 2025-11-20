@@ -9,8 +9,8 @@
   "scripts": {
     "dev": "nodemon --watch src --ext js,mjs src/index.js",
     "start": "node src/index.js",
-    "test": "vitest",
-    "test:run": "vitest run",
+    "test": "vitest --no-file-parallelism",
+    "test:run": "vitest run --no-file-parallelism --exclude \"**/helpers.test.js\"",
     "seed": "node src/seeds/seed.js"
   },
   "keywords": [],
