@@ -14,7 +14,7 @@ const bookSchema = new mongoose.Schema(
     price: { type: Number, required: true },
     condition: { type: String, enum: ['new', 'used'], required: true },
     description: String,
-    images: [String],
+    image: String,
     meetingLocation: String,
     status: { type: String, enum: ['available', 'pending', 'sold'], default: 'available' },
     owner: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },

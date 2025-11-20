@@ -14,7 +14,7 @@ const createBookSchema = z.object({
   price: z.number().positive(),
   condition: z.enum(['new', 'used']),
   description: z.string().optional(),
-  images: z.array(z.string()).optional(),
+  image: z.string().optional(),
   meetingLocation: z.string().optional(),
 });
 
