@@ -10,7 +10,8 @@
     "dev": "nodemon --watch src --ext js,mjs src/index.js",
     "start": "node src/index.js",
     "test": "vitest",
-    "test:run": "vitest run"
+    "test:run": "vitest run",
+    "seed": "node src/seeds/seed.js"
   },
   "keywords": [],
   "author": "",
