@@ -55,7 +55,9 @@ export const listBooks = async (req, res) => {
     query.$or = [
       { title: regex },
       { author: regex },
-      { courseCode: regex }
+      { courseCode: regex },
+      { courseName: regex },
+      { isbn: regex }
     ];
   }
 
@@ -67,12 +69,32 @@ export const listBooks = async (req, res) => {
       .sort({ [sortBy]: sortOrder })
       .skip(skip)
       .limit(parseInt(limit))
-      .populate('owner', 'nickname averageRating'),
+      .populate('owner', 'nickname avatar bio'),
     Book.countDocuments(query)
   ]);
 
+  // Attach rating stats to each owner and transform to seller
+  const booksWithRatings = await Promise.all(
+    books.map(async (book) => {
+      const bookObj = book.toObject();
+      if (bookObj.owner) {
+        const ratings = await bookObj.owner.getRatingStats?.() || { averageRating: 0, ratingCount: 0 };
+        bookObj.seller = {
+          _id: bookObj.owner._id,
+          nickname: bookObj.owner.nickname,
+          avatar: bookObj.owner.avatar,
+          bio: bookObj.owner.bio,
+          ...ratings
+        };
+        delete bookObj.owner;
+      }
+      return bookObj;
+    })
+  );
+
   res.json({
-    books,
+    ok: true,
+    books: booksWithRatings,
     total,
     page: parseInt(page),
     totalPages: Math.ceil(total / parseInt(limit))
@@ -81,10 +103,23 @@ export const listBooks = async (req, res) => {
 
 export const getBook = async (req, res) => {
   const book = await Book.findById(req.params.id)
-    .populate('owner', 'nickname averageRating ratingCount avatar');
+    .populate('owner', 'nickname avatar bio');
 
   if (!book) {
     return res.status(404).json({ error: "Book not found" });
+  }
+
+  const bookObj = book.toObject();
+  if (bookObj.owner) {
+    const ratings = await book.owner.getRatingStats();
+    bookObj.seller = {
+      _id: bookObj.owner._id,
+      nickname: bookObj.owner.nickname,
+      avatar: bookObj.owner.avatar,
+      bio: bookObj.owner.bio,
+      ...ratings
+    };
+    delete bookObj.owner;
   }
 
   res.json({ book });
