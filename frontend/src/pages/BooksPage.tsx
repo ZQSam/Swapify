@@ -176,8 +176,9 @@ export default function BooksPage() {
           <button
             onClick={handleSearch}
             style={{
-              width: '100px',
+              minWidth: '120px',
               height: '48px',
+              padding: '0 24px',
               backgroundColor: 'var(--color-primary)',
               color: 'white',
               border: 'none',
@@ -189,11 +190,12 @@ export default function BooksPage() {
               alignItems: 'center',
               justifyContent: 'center',
               gap: '8px',
+              whiteSpace: 'nowrap',
             }}
             onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--color-primary-dark)'}
             onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'var(--color-primary)'}
           >
-            <Search size={20} />
+            <Search size={24} />
             Search
           </button>
         </div>
