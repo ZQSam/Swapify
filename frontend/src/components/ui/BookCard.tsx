@@ -45,7 +45,7 @@ export default function BookCard({
         <div
           style={{
             width: '100%',
-            height: '200px',
+            height: '300px',
             background: image
               ? `url(${image}) center/cover`
               : 'var(--color-gray-50)',
@@ -132,28 +132,30 @@ export default function BookCard({
         </div>
 
         {/* Seller Info */}
-        <div
-          style={{
-            paddingTop: '12px',
-            borderTop: '1px solid var(--color-gray-100)',
-          }}
-        >
+        {seller && (
           <div
             style={{
-              fontSize: '12px',
-              color: 'var(--color-gray-300)',
-              marginBottom: '4px',
+              paddingTop: '12px',
+              borderTop: '1px solid var(--color-gray-100)',
             }}
           >
-            Seller: {seller.nickname}
+            <div
+              style={{
+                fontSize: '12px',
+                color: 'var(--color-gray-300)',
+                marginBottom: '4px',
+              }}
+            >
+              Seller: {seller.nickname}
+            </div>
+            <RatingStars
+              rating={seller.averageRating || 0}
+              count={seller.ratingCount || 0}
+              size={14}
+              showCount={false}
+            />
           </div>
-          <RatingStars
-            rating={seller.averageRating}
-            count={seller.ratingCount}
-            size={14}
-            showCount={false}
-          />
-        </div>
+        )}
       </div>
     </Card>
   );
