@@ -4,7 +4,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "./contexts/AuthContext";
 import RegisterWizard from "./pages/RegisterWizard";
 import LoginPage from "./pages/LoginPage";
-import HomePage from "./pages/HomePage";
+import BooksPage from "./pages/BooksPage";
 import ComponentsDemo from "./pages/ComponentsDemo";
 import SiteHeader from "./components/SiteHeader";
 import SiteFooter from "./components/SiteFooter";
@@ -19,7 +19,7 @@ export default function App() {
         <Routes>
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterWizard />} />
-          <Route path="/" element={<HomePage />} />
+          <Route path="/" element={<BooksPage />} />
           <Route path="/components-demo" element={<ComponentsDemo />} />
 
           <Route
