@@ -1,5 +1,8 @@
 import "dotenv/config";
 import mongoose from "mongoose";
+import fs from "fs";
+import path from "path";
+import { fileURLToPath } from "url";
 import { Course } from "../models/Course.model.js";
 import { BookTemplate } from "../models/BookTemplate.model.js";
 import { User } from "../models/User.model.js";
@@ -8,6 +11,9 @@ import { coursesData } from "./courses.seed.js";
 import { bookTemplatesData } from "./bookTemplates.seed.js";
 import { usersData } from "./users.seed.js";
 import { booksData } from "./books.seed.js";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 async function seed() {
   try {
@@ -29,8 +35,31 @@ async function seed() {
     const insertedUsers = await User.insertMany(usersData);
     console.log(`Inserted ${usersData.length} test users`);
 
+    // Load book cover images and convert to base64
+    const booksWithImages = booksData.map((book, index) => {
+      const imagePath = path.join(__dirname, 'images', `book${index + 1}.jpg`);
+      let imageBase64 = null;
+
+      if (fs.existsSync(imagePath)) {
+        try {
+          const imageBuffer = fs.readFileSync(imagePath);
+          imageBase64 = `data:image/jpeg;base64,${imageBuffer.toString('base64')}`;
+          console.log(`Loaded image for book ${index + 1}: ${book.title}`);
+        } catch (error) {
+          console.warn(`Failed to load image for book ${index + 1}:`, error.message);
+        }
+      } else {
+        console.warn(`Image not found for book ${index + 1}: ${imagePath}`);
+      }
+
+      return {
+        ...book,
+        image: imageBase64
+      };
+    });
+
     // Distribute books among users
-    const booksWithOwners = booksData.map((book, index) => ({
+    const booksWithOwners = booksWithImages.map((book, index) => ({
       ...book,
       owner: insertedUsers[index % insertedUsers.length]._id
     }));
