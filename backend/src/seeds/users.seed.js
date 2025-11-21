@@ -11,8 +11,6 @@ export const usersData = [
     nickname: "John Doe",
     passwordHash: hashedPassword,
     bio: "Computer Science student, looking for textbooks",
-    averageRating: 4.8,
-    ratingCount: 15,
   },
   {
     email: "jane.doe@illinois.edu",
@@ -20,7 +18,26 @@ export const usersData = [
     nickname: "Jane Doe",
     passwordHash: hashedPassword,
     bio: "Business major, selling my old books",
-    averageRating: 4.5,
-    ratingCount: 8,
+  },
+  {
+    email: "alex.smith@illinois.edu",
+    uiucVerified: true,
+    nickname: "Alex Smith",
+    passwordHash: hashedPassword,
+    bio: "Senior in ECE, graduating soon",
+  },
+  {
+    email: "emily.chen@illinois.edu",
+    uiucVerified: true,
+    nickname: "Emily Chen",
+    passwordHash: hashedPassword,
+    bio: "Math major, always buying and selling textbooks",
+  },
+  {
+    email: "mike.johnson@illinois.edu",
+    uiucVerified: true,
+    nickname: "Mike Johnson",
+    passwordHash: hashedPassword,
+    bio: "Physics student, have some books to sell",
   },
 ];
