@@ -56,9 +56,12 @@ export interface Book {
   author?: string;
   isbn?: string;
   courseCode: string;
+  courseName?: string;
+  term?: string;
   condition: string;
   price: number;
-  images: string[];
+  image?: string;
+  images?: string[];
   description?: string;
   status: 'available' | 'pending' | 'sold';
   createdAt: string;
@@ -69,6 +72,27 @@ export interface BooksListResponse {
   ok: true;
   books: Book[];
   total: number;
+}
+
+async function put<T>(path: string, body: any): Promise<T> {
+  const res = await fetch(`${API_BASE}${path}`, {
+    method: "PUT",
+    headers: getAuthHeaders(),
+    body: JSON.stringify(body),
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data?.error || "Request failed");
+  return data as T;
+}
+
+async function del<T>(path: string): Promise<T> {
+  const res = await fetch(`${API_BASE}${path}`, {
+    method: "DELETE",
+    headers: getAuthHeaders(),
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data?.error || "Request failed");
+  return data as T;
 }
 
 export const BookAPI = {
@@ -94,4 +118,38 @@ export const BookAPI = {
 
   get: (id: string) =>
     get<{ ok: true; book: Book }>(`/api/books/${id}`),
+
+  getMyBooks: () =>
+    get<{ books: Book[] }>('/api/books/my/listings'),
+
+  create: (data: {
+    title: string;
+    author?: string;
+    isbn?: string;
+    courseCode: string;
+    courseName?: string;
+    term?: string;
+    price: number;
+    condition: 'new' | 'used';
+    description?: string;
+    image?: string;
+  }) =>
+    post<{ book: Book }>('/api/books', data),
+
+  update: (id: string, data: Partial<{
+    title: string;
+    author?: string;
+    isbn?: string;
+    courseCode: string;
+    courseName?: string;
+    term?: string;
+    price: number;
+    condition: 'new' | 'used';
+    description?: string;
+    image?: string;
+  }>) =>
+    put<{ book: Book }>(`/api/books/${id}`, data),
+
+  delete: (id: string) =>
+    del<{ message: string }>(`/api/books/${id}`),
 };
