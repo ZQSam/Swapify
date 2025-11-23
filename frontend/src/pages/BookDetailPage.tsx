@@ -71,7 +71,7 @@ export default function BookDetailPage() {
     );
   }
 
-  const isOwnBook = user?.id === book.seller._id;
+  const isOwnBook = user?.id === book.seller?._id;
   const statusLabels = {
     available: 'Available',
     pending: 'Pending Sale',

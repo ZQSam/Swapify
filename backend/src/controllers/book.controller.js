@@ -122,7 +122,7 @@ export const getBook = async (req, res) => {
     delete bookObj.owner;
   }
 
-  res.json({ book });
+  res.json({ ok: true, book: bookObj });
 };
 
 export const updateBook = async (req, res) => {
