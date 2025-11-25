@@ -24,7 +24,11 @@ export default function BookFormPage() {
     price: '',
     condition: 'used' as 'new' | 'used',
     description: '',
+    image: '',
   });
+
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [fetchingBookInfo, setFetchingBookInfo] = useState(false);
 
   useEffect(() => {
     if (isEdit && id) {
@@ -48,7 +52,12 @@ export default function BookFormPage() {
         price: book.price.toString(),
         condition: book.condition,
         description: book.description || '',
+        image: book.image || '',
       });
+
+      if (book.image) {
+        setImagePreview(book.image);
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load book');
     } finally {
@@ -84,6 +93,7 @@ export default function BookFormPage() {
         price,
         condition: formData.condition,
         description: formData.description || undefined,
+        image: formData.image || undefined,
       };
 
       if (isEdit && id) {
@@ -102,6 +112,79 @@ export default function BookFormPage() {
 
   const handleChange = (field: string, value: string) => {
     setFormData({ ...formData, [field]: value });
+  };
+
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      setError('Please upload an image file');
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      setError('Image size should be less than 5MB');
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      const base64String = reader.result as string;
+      setImagePreview(base64String);
+      setFormData({ ...formData, image: base64String });
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleRemoveImage = () => {
+    setImagePreview(null);
+    setFormData({ ...formData, image: '' });
+  };
+
+  const fetchBookInfo = async () => {
+    if (!formData.isbn) {
+      setError('Please enter an ISBN first');
+      return;
+    }
+
+    try {
+      setFetchingBookInfo(true);
+      setError(null);
+
+      const response = await fetch(`https://www.googleapis.com/books/v1/volumes?q=isbn:${formData.isbn}`);
+      const data = await response.json();
+
+      if (data.items && data.items.length > 0) {
+        const bookInfo = data.items[0].volumeInfo;
+
+        setFormData({
+          ...formData,
+          title: bookInfo.title || formData.title,
+          author: bookInfo.authors?.join(', ') || formData.author,
+          description: bookInfo.description || formData.description,
+        });
+
+        if (bookInfo.imageLinks?.thumbnail) {
+          const imageUrl = bookInfo.imageLinks.thumbnail.replace('http:', 'https:');
+          setImagePreview(imageUrl);
+
+          const imgResponse = await fetch(imageUrl);
+          const blob = await imgResponse.blob();
+          const reader = new FileReader();
+          reader.onloadend = () => {
+            setFormData(prev => ({ ...prev, image: reader.result as string }));
+          };
+          reader.readAsDataURL(blob);
+        }
+      } else {
+        setError('Book not found with this ISBN');
+      }
+    } catch (err) {
+      setError('Failed to fetch book information');
+    } finally {
+      setFetchingBookInfo(false);
+    }
   };
 
   if (loading) {
@@ -180,6 +263,131 @@ export default function BookFormPage() {
 
           <form onSubmit={handleSubmit}>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+              {/* Book Cover Upload */}
+              <div>
+                <label style={{
+                  display: 'block',
+                  fontSize: '14px',
+                  fontWeight: 600,
+                  color: 'var(--color-gray-700)',
+                  marginBottom: '8px',
+                }}>
+                  Book Cover
+                </label>
+                <div style={{
+                  display: 'flex',
+                  gap: '16px',
+                  alignItems: 'flex-start',
+                }}>
+                  {/* Image Preview */}
+                  <div style={{
+                    width: '200px',
+                    height: '280px',
+                    border: '2px dashed var(--color-gray-100)',
+                    borderRadius: '8px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    background: imagePreview ? `url(${imagePreview}) center/cover` : 'var(--color-gray-50)',
+                    position: 'relative',
+                  }}>
+                    {!imagePreview && (
+                      <span style={{ color: 'var(--color-gray-300)', fontSize: '14px', textAlign: 'center', padding: '16px' }}>
+                        No cover image
+                      </span>
+                    )}
+                  </div>
+
+                  {/* Upload Controls */}
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                    <label style={{
+                      padding: '12px 24px',
+                      backgroundColor: 'var(--color-primary)',
+                      color: 'white',
+                      borderRadius: '8px',
+                      fontSize: '14px',
+                      fontWeight: 600,
+                      cursor: 'pointer',
+                      textAlign: 'center',
+                    }}>
+                      {imagePreview ? 'Replace Image' : 'Upload Image'}
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleImageUpload}
+                        style={{ display: 'none' }}
+                      />
+                    </label>
+
+                    {imagePreview && (
+                      <button
+                        type="button"
+                        onClick={handleRemoveImage}
+                        style={{
+                          padding: '12px 24px',
+                          backgroundColor: 'white',
+                          color: 'var(--color-error)',
+                          border: '1px solid var(--color-error)',
+                          borderRadius: '8px',
+                          fontSize: '14px',
+                          fontWeight: 600,
+                          cursor: 'pointer',
+                        }}
+                      >
+                        Remove Image
+                      </button>
+                    )}
+
+                    <p style={{ fontSize: '12px', color: 'var(--color-gray-300)', margin: 0 }}>
+                      Max size: 5MB<br />
+                      Formats: JPG, PNG, WebP
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* ISBN with Auto-fill */}
+              <div>
+                <label style={{
+                  display: 'block',
+                  fontSize: '14px',
+                  fontWeight: 600,
+                  color: 'var(--color-gray-700)',
+                  marginBottom: '8px',
+                }}>
+                  ISBN
+                </label>
+                <div style={{ display: 'flex', gap: '12px' }}>
+                  <Input
+                    value={formData.isbn}
+                    onChange={(e) => handleChange('isbn', e.target.value)}
+                    placeholder="Enter ISBN"
+                    style={{ flex: 1 }}
+                  />
+                  <button
+                    type="button"
+                    onClick={fetchBookInfo}
+                    disabled={fetchingBookInfo || !formData.isbn}
+                    style={{
+                      padding: '0 24px',
+                      backgroundColor: fetchingBookInfo ? 'var(--color-gray-100)' : 'var(--color-navy)',
+                      color: fetchingBookInfo ? 'var(--color-gray-300)' : 'white',
+                      border: 'none',
+                      borderRadius: '8px',
+                      fontSize: '14px',
+                      fontWeight: 600,
+                      cursor: fetchingBookInfo ? 'not-allowed' : 'pointer',
+                      whiteSpace: 'nowrap',
+                    }}
+                  >
+                    {fetchingBookInfo ? 'Loading...' : 'Auto-fill'}
+                  </button>
+                </div>
+                <p style={{ fontSize: '12px', color: 'var(--color-gray-300)', marginTop: '4px' }}>
+                  Enter ISBN and click Auto-fill to fetch book information automatically
+                </p>
+              </div>
+
               {/* Title */}
               <div>
                 <label style={{
@@ -214,24 +422,6 @@ export default function BookFormPage() {
                   value={formData.author}
                   onChange={(e) => handleChange('author', e.target.value)}
                   placeholder="Enter author name"
-                />
-              </div>
-
-              {/* ISBN */}
-              <div>
-                <label style={{
-                  display: 'block',
-                  fontSize: '14px',
-                  fontWeight: 600,
-                  color: 'var(--color-gray-700)',
-                  marginBottom: '8px',
-                }}>
-                  ISBN
-                </label>
-                <Input
-                  value={formData.isbn}
-                  onChange={(e) => handleChange('isbn', e.target.value)}
-                  placeholder="Enter ISBN"
                 />
               </div>
 

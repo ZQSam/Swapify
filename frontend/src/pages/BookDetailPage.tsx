@@ -228,28 +228,30 @@ export default function BookDetailPage() {
             )}
 
             {/* Seller Info */}
-            <div style={{
-              padding: '20px',
-              background: 'var(--color-gray-50)',
-              borderRadius: '8px',
-              marginBottom: '24px',
-            }}>
-              <h3 style={{ fontSize: '16px', fontWeight: 700, marginBottom: '12px' }}>
-                Seller Information
-              </h3>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <div>
-                  <div style={{ fontSize: '18px', fontWeight: 600, marginBottom: '4px' }}>
-                    {book.seller.nickname}
+            {book.seller && (
+              <div style={{
+                padding: '20px',
+                background: 'var(--color-gray-50)',
+                borderRadius: '8px',
+                marginBottom: '24px',
+              }}>
+                <h3 style={{ fontSize: '16px', fontWeight: 700, marginBottom: '12px' }}>
+                  Seller Information
+                </h3>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <div>
+                    <div style={{ fontSize: '18px', fontWeight: 600, marginBottom: '4px' }}>
+                      {book.seller.nickname}
+                    </div>
+                    <RatingStars
+                      rating={book.seller.averageRating || 0}
+                      count={book.seller.ratingCount || 0}
+                      size={16}
+                    />
                   </div>
-                  <RatingStars
-                    rating={book.seller.averageRating || 0}
-                    count={book.seller.ratingCount || 0}
-                    size={16}
-                  />
                 </div>
               </div>
-            </div>
+            )}
 
             {/* Contact Button */}
             {!isOwnBook && book.status === 'available' && (
