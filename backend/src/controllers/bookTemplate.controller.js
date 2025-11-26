@@ -19,6 +19,7 @@ export const searchTemplates = async (req, res) => {
     id: t._id,
     title: t.title,
     author: t.author,
+    isbn: t.isbn || undefined,
     edition: t.edition,
     year: t.year,
     coverImage: t.coverImage,
@@ -34,4 +35,25 @@ export const getTemplate = async (req, res) => {
     return res.status(404).json({ error: "Template not found" });
   }
   res.json({ template });
+};
+
+export const getAvailableTerms = async (req, res) => {
+  try {
+    const templates = await BookTemplate.find({});
+
+    // Extract and deduplicate terms
+    const termsSet = new Set();
+    templates.forEach(template => {
+      template.commonCourses.forEach(course => {
+        if (course.term) {
+          termsSet.add(course.term);
+        }
+      });
+    });
+
+    const terms = Array.from(termsSet).sort();
+    res.json({ terms });
+  } catch (error) {
+    res.status(500).json({ error: "Failed to fetch terms" });
+  }
 };
