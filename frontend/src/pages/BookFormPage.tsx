@@ -1,9 +1,9 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { BookAPI } from '../lib/api';
-import type { Book } from '../lib/api';
+import { BookAPI, BookTemplateAPI, CourseAPI } from '../lib/api';
+import type { Book, BookTemplateSuggestion, Course } from '../lib/api';
 import { LoadingSpinner, Button, Input } from '../components/ui';
-import { ArrowLeft, Save } from 'lucide-react';
+import { ArrowLeft, Save, Search } from 'lucide-react';
 
 export default function BookFormPage() {
   const { id } = useParams<{ id?: string }>();
@@ -28,13 +28,79 @@ export default function BookFormPage() {
   });
 
   const [imagePreview, setImagePreview] = useState<string | null>(null);
-  const [fetchingBookInfo, setFetchingBookInfo] = useState(false);
+
+  // Book template search states
+  const [templateSearch, setTemplateSearch] = useState('');
+  const [templateSuggestions, setTemplateSuggestions] = useState<BookTemplateSuggestion[]>([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [searchingTemplates, setSearchingTemplates] = useState(false);
+  const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const suggestionsRef = useRef<HTMLDivElement>(null);
+
+  // Course selection states
+  const [courses, setCourses] = useState<Course[]>([]);
+  const [loadingCourses, setLoadingCourses] = useState(false);
+
+  // Available terms from backend
+  const [availableTerms, setAvailableTerms] = useState<string[]>([]);
+  const [loadingTerms, setLoadingTerms] = useState(false);
 
   useEffect(() => {
     if (isEdit && id) {
       loadBook(id);
     }
   }, [id, isEdit]);
+
+  // Close suggestions when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (suggestionsRef.current && !suggestionsRef.current.contains(e.target as Node)) {
+        setShowSuggestions(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  // Load available terms on mount
+  useEffect(() => {
+    loadAvailableTerms();
+  }, []);
+
+  // Load courses when term changes
+  useEffect(() => {
+    if (formData.term) {
+      loadCoursesByTerm(formData.term);
+    } else {
+      setCourses([]);
+    }
+  }, [formData.term]);
+
+  const loadAvailableTerms = async () => {
+    try {
+      setLoadingTerms(true);
+      const response = await BookTemplateAPI.getAvailableTerms();
+      setAvailableTerms(response.terms);
+    } catch (err) {
+      console.error('Failed to load terms:', err);
+      setAvailableTerms([]);
+    } finally {
+      setLoadingTerms(false);
+    }
+  };
+
+  const loadCoursesByTerm = async (term: string) => {
+    try {
+      setLoadingCourses(true);
+      const response = await CourseAPI.getByTerm(term);
+      setCourses(response.courses);
+    } catch (err) {
+      console.error('Failed to load courses:', err);
+      setCourses([]);
+    } finally {
+      setLoadingCourses(false);
+    }
+  };
 
   const loadBook = async (bookId: string) => {
     try {
@@ -142,49 +208,57 @@ export default function BookFormPage() {
     setFormData({ ...formData, image: '' });
   };
 
-  const fetchBookInfo = async () => {
-    if (!formData.isbn) {
-      setError('Please enter an ISBN first');
+
+  const handleTemplateSearch = (value: string) => {
+    setTemplateSearch(value);
+
+    if (searchTimeoutRef.current) {
+      clearTimeout(searchTimeoutRef.current);
+    }
+
+    if (!value.trim()) {
+      setTemplateSuggestions([]);
+      setShowSuggestions(false);
       return;
     }
 
-    try {
-      setFetchingBookInfo(true);
-      setError(null);
-
-      const response = await fetch(`https://www.googleapis.com/books/v1/volumes?q=isbn:${formData.isbn}`);
-      const data = await response.json();
-
-      if (data.items && data.items.length > 0) {
-        const bookInfo = data.items[0].volumeInfo;
-
-        setFormData({
-          ...formData,
-          title: bookInfo.title || formData.title,
-          author: bookInfo.authors?.join(', ') || formData.author,
-          description: bookInfo.description || formData.description,
-        });
-
-        if (bookInfo.imageLinks?.thumbnail) {
-          const imageUrl = bookInfo.imageLinks.thumbnail.replace('http:', 'https:');
-          setImagePreview(imageUrl);
-
-          const imgResponse = await fetch(imageUrl);
-          const blob = await imgResponse.blob();
-          const reader = new FileReader();
-          reader.onloadend = () => {
-            setFormData(prev => ({ ...prev, image: reader.result as string }));
-          };
-          reader.readAsDataURL(blob);
-        }
-      } else {
-        setError('Book not found with this ISBN');
+    setSearchingTemplates(true);
+    searchTimeoutRef.current = setTimeout(async () => {
+      try {
+        const response = await BookTemplateAPI.search(value.trim(), 5);
+        setTemplateSuggestions(response.suggestions);
+        setShowSuggestions(response.suggestions.length > 0);
+      } catch (err) {
+        console.error('Failed to search templates:', err);
+        setTemplateSuggestions([]);
+      } finally {
+        setSearchingTemplates(false);
       }
-    } catch (err) {
-      setError('Failed to fetch book information');
-    } finally {
-      setFetchingBookInfo(false);
+    }, 300);
+  };
+
+  const handleSelectTemplate = (suggestion: BookTemplateSuggestion) => {
+    // Auto-fill form fields including ISBN and image
+    setFormData({
+      ...formData,
+      title: suggestion.title,
+      author: suggestion.author || '',
+      isbn: suggestion.isbn || '',
+      courseCode: suggestion.courseInfo?.code || '',
+      courseName: suggestion.courseInfo?.name || '',
+      term: suggestion.courseInfo?.term || '',
+      image: suggestion.coverImage || '',
+    });
+
+    // Set image preview if available
+    if (suggestion.coverImage) {
+      setImagePreview(suggestion.coverImage);
     }
+
+    // Clear search
+    setTemplateSearch('');
+    setShowSuggestions(false);
+    setTemplateSuggestions([]);
   };
 
   if (loading) {
@@ -263,6 +337,159 @@ export default function BookFormPage() {
 
           <form onSubmit={handleSubmit}>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+              {/* Book Template Search */}
+              <div style={{ marginBottom: '8px' }}>
+                <h3 style={{
+                  fontSize: '18px',
+                  fontWeight: 700,
+                  color: 'var(--color-gray-900)',
+                  marginBottom: '8px',
+                }}>
+                  Book Info
+                </h3>
+                <p style={{
+                  fontSize: '14px',
+                  color: 'var(--color-gray-700)',
+                  marginBottom: '12px',
+                }}>
+                  Populate the book info by searching for the book
+                </p>
+
+                <div ref={suggestionsRef} style={{ position: 'relative' }}>
+                  <div style={{ position: 'relative' }}>
+                    <input
+                      type="text"
+                      value={templateSearch}
+                      onChange={(e) => handleTemplateSearch(e.target.value)}
+                      placeholder="Search by Course Code, Book Name or Course Name"
+                      style={{
+                        width: '100%',
+                        height: '48px',
+                        padding: '0 48px 0 16px',
+                        fontSize: '16px',
+                        border: '1px solid var(--color-gray-100)',
+                        borderRadius: '8px',
+                        outline: 'none',
+                        transition: 'all 0.2s ease',
+                      }}
+                      onFocus={() => {
+                        if (templateSuggestions.length > 0) {
+                          setShowSuggestions(true);
+                        }
+                      }}
+                    />
+                    <Search
+                      size={20}
+                      color="var(--color-gray-300)"
+                      style={{
+                        position: 'absolute',
+                        right: '16px',
+                        top: '50%',
+                        transform: 'translateY(-50%)',
+                        pointerEvents: 'none',
+                      }}
+                    />
+                  </div>
+
+                  {/* Suggestions Dropdown */}
+                  {showSuggestions && templateSuggestions.length > 0 && (
+                    <div style={{
+                      position: 'absolute',
+                      top: '100%',
+                      left: 0,
+                      right: 0,
+                      marginTop: '4px',
+                      background: 'white',
+                      border: '1px solid var(--color-gray-100)',
+                      borderRadius: '8px',
+                      boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
+                      maxHeight: '400px',
+                      overflowY: 'auto',
+                      zIndex: 100,
+                    }}>
+                      {templateSuggestions.map((suggestion) => (
+                        <div
+                          key={suggestion.id}
+                          onClick={() => handleSelectTemplate(suggestion)}
+                          style={{
+                            padding: '12px 16px',
+                            cursor: 'pointer',
+                            borderBottom: '1px solid var(--color-gray-100)',
+                            transition: 'background 0.2s ease',
+                          }}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.background = 'var(--color-gray-50)';
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.background = 'white';
+                          }}
+                        >
+                          <div style={{
+                            fontSize: '14px',
+                            fontWeight: 600,
+                            color: 'var(--color-gray-900)',
+                            marginBottom: '4px',
+                          }}>
+                            {suggestion.title}
+                          </div>
+                          <div style={{
+                            fontSize: '12px',
+                            color: 'var(--color-gray-700)',
+                          }}>
+                            by {suggestion.author}
+                            {suggestion.edition && `, ${suggestion.edition} Edition`}
+                            {suggestion.year && ` (${suggestion.year})`}
+                          </div>
+                          {suggestion.courseInfo && (
+                            <div style={{
+                              fontSize: '12px',
+                              color: 'var(--color-primary)',
+                              marginTop: '4px',
+                            }}>
+                              {suggestion.courseInfo.code} - {suggestion.courseInfo.term}
+                              {suggestion.courseInfo.section && `, ${suggestion.courseInfo.section}`}
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {searchingTemplates && (
+                    <div style={{
+                      position: 'absolute',
+                      top: '100%',
+                      left: 0,
+                      right: 0,
+                      marginTop: '4px',
+                      background: 'white',
+                      border: '1px solid var(--color-gray-100)',
+                      borderRadius: '8px',
+                      padding: '12px',
+                      textAlign: 'center',
+                      color: 'var(--color-gray-300)',
+                      fontSize: '14px',
+                    }}>
+                      Searching...
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* OR Divider */}
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '16px',
+                margin: '8px 0',
+              }}>
+                <div style={{ flex: 1, height: '1px', background: 'var(--color-gray-100)' }} />
+                <span style={{ fontSize: '14px', color: 'var(--color-gray-300)', fontWeight: 500 }}>
+                  OR Enter the info manually
+                </span>
+                <div style={{ flex: 1, height: '1px', background: 'var(--color-gray-100)' }} />
+              </div>
+
               {/* Book Cover Upload */}
               <div>
                 <label style={{
@@ -346,7 +573,7 @@ export default function BookFormPage() {
                 </div>
               </div>
 
-              {/* ISBN with Auto-fill */}
+              {/* ISBN */}
               <div>
                 <label style={{
                   display: 'block',
@@ -357,35 +584,11 @@ export default function BookFormPage() {
                 }}>
                   ISBN
                 </label>
-                <div style={{ display: 'flex', gap: '12px' }}>
-                  <Input
-                    value={formData.isbn}
-                    onChange={(e) => handleChange('isbn', e.target.value)}
-                    placeholder="Enter ISBN"
-                    style={{ flex: 1 }}
-                  />
-                  <button
-                    type="button"
-                    onClick={fetchBookInfo}
-                    disabled={fetchingBookInfo || !formData.isbn}
-                    style={{
-                      padding: '0 24px',
-                      backgroundColor: fetchingBookInfo ? 'var(--color-gray-100)' : 'var(--color-navy)',
-                      color: fetchingBookInfo ? 'var(--color-gray-300)' : 'white',
-                      border: 'none',
-                      borderRadius: '8px',
-                      fontSize: '14px',
-                      fontWeight: 600,
-                      cursor: fetchingBookInfo ? 'not-allowed' : 'pointer',
-                      whiteSpace: 'nowrap',
-                    }}
-                  >
-                    {fetchingBookInfo ? 'Loading...' : 'Auto-fill'}
-                  </button>
-                </div>
-                <p style={{ fontSize: '12px', color: 'var(--color-gray-300)', marginTop: '4px' }}>
-                  Enter ISBN and click Auto-fill to fetch book information automatically
-                </p>
+                <Input
+                  value={formData.isbn}
+                  onChange={(e) => handleChange('isbn', e.target.value)}
+                  placeholder="Enter ISBN"
+                />
               </div>
 
               {/* Title */}
@@ -425,7 +628,7 @@ export default function BookFormPage() {
                 />
               </div>
 
-              {/* Course Code and Course Name */}
+              {/* Term and Course */}
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
                 <div>
                   <label style={{
@@ -435,14 +638,36 @@ export default function BookFormPage() {
                     color: 'var(--color-gray-700)',
                     marginBottom: '8px',
                   }}>
-                    Course Code <span style={{ color: 'var(--color-error)' }}>*</span>
+                    Term <span style={{ color: 'var(--color-error)' }}>*</span>
                   </label>
-                  <Input
-                    value={formData.courseCode}
-                    onChange={(e) => handleChange('courseCode', e.target.value)}
-                    placeholder="e.g., CS 374"
+                  <select
+                    value={formData.term}
+                    onChange={(e) => {
+                      handleChange('term', e.target.value);
+                      // Reset course selection when term changes
+                      setFormData(prev => ({ ...prev, courseCode: '', courseName: '' }));
+                    }}
+                    disabled={loadingTerms}
+                    style={{
+                      width: '100%',
+                      height: '48px',
+                      padding: '0 16px',
+                      fontSize: '16px',
+                      border: '1px solid var(--color-gray-100)',
+                      borderRadius: '8px',
+                      outline: 'none',
+                      backgroundColor: loadingTerms ? 'var(--color-gray-50)' : 'white',
+                      cursor: loadingTerms ? 'not-allowed' : 'pointer',
+                    }}
                     required
-                  />
+                  >
+                    <option value="">
+                      {loadingTerms ? 'Loading terms...' : 'Select a term'}
+                    </option>
+                    {availableTerms.map(term => (
+                      <option key={term} value={term}>{term}</option>
+                    ))}
+                  </select>
                 </div>
 
                 <div>
@@ -453,32 +678,44 @@ export default function BookFormPage() {
                     color: 'var(--color-gray-700)',
                     marginBottom: '8px',
                   }}>
-                    Course Name
+                    Course <span style={{ color: 'var(--color-error)' }}>*</span>
                   </label>
-                  <Input
-                    value={formData.courseName}
-                    onChange={(e) => handleChange('courseName', e.target.value)}
-                    placeholder="e.g., Algorithms"
-                  />
+                  <select
+                    value={formData.courseCode}
+                    onChange={(e) => {
+                      const selectedCourse = courses.find(c => c.code === e.target.value);
+                      if (selectedCourse) {
+                        setFormData(prev => ({
+                          ...prev,
+                          courseCode: selectedCourse.code,
+                          courseName: selectedCourse.name
+                        }));
+                      }
+                    }}
+                    disabled={!formData.term || loadingCourses}
+                    style={{
+                      width: '100%',
+                      height: '48px',
+                      padding: '0 16px',
+                      fontSize: '16px',
+                      border: '1px solid var(--color-gray-100)',
+                      borderRadius: '8px',
+                      outline: 'none',
+                      backgroundColor: !formData.term || loadingCourses ? 'var(--color-gray-50)' : 'white',
+                      cursor: !formData.term || loadingCourses ? 'not-allowed' : 'pointer',
+                    }}
+                    required
+                  >
+                    <option value="">
+                      {loadingCourses ? 'Loading courses...' : formData.term ? 'Select a course' : 'Select term first'}
+                    </option>
+                    {courses.map(course => (
+                      <option key={course.code} value={course.code}>
+                        {course.code} - {course.name}
+                      </option>
+                    ))}
+                  </select>
                 </div>
-              </div>
-
-              {/* Term */}
-              <div>
-                <label style={{
-                  display: 'block',
-                  fontSize: '14px',
-                  fontWeight: 600,
-                  color: 'var(--color-gray-700)',
-                  marginBottom: '8px',
-                }}>
-                  Term
-                </label>
-                <Input
-                  value={formData.term}
-                  onChange={(e) => handleChange('term', e.target.value)}
-                  placeholder="e.g., Fall 2025"
-                />
               </div>
 
               {/* Price and Condition */}

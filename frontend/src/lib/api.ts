@@ -153,3 +153,43 @@ export const BookAPI = {
   delete: (id: string) =>
     del<{ message: string }>(`/api/books/${id}`),
 };
+
+export interface BookTemplateSuggestion {
+  id: string;
+  title: string;
+  author: string;
+  isbn?: string;
+  edition?: string;
+  year?: number;
+  coverImage?: string;
+  courseInfo?: {
+    code: string;
+    name: string;
+    term: string;
+    section: string;
+  };
+}
+
+export const BookTemplateAPI = {
+  search: (query: string, limit?: number) => {
+    const queryParams = new URLSearchParams();
+    queryParams.set('q', query);
+    if (limit) queryParams.set('limit', limit.toString());
+
+    return get<{ suggestions: BookTemplateSuggestion[] }>(
+      `/api/book-templates/search?${queryParams.toString()}`
+    );
+  },
+  getAvailableTerms: () =>
+    get<{ terms: string[] }>('/api/book-templates/terms'),
+};
+
+export interface Course {
+  code: string;
+  name: string;
+}
+
+export const CourseAPI = {
+  getByTerm: (term: string) =>
+    get<{ courses: Course[] }>(`/api/courses/by-term?term=${encodeURIComponent(term)}`),
+};
