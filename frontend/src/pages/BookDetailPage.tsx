@@ -38,7 +38,6 @@ export default function BookDetailPage() {
       navigate('/login');
       return;
     }
-    // TODO: Navigate to messages or open chat
     navigate('/messages');
   };
 
