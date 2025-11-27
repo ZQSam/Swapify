@@ -7,10 +7,12 @@ import { Course } from "../models/Course.model.js";
 import { BookTemplate } from "../models/BookTemplate.model.js";
 import { User } from "../models/User.model.js";
 import { Book } from "../models/Book.model.js";
+import { Message } from "../models/Message.model.js";
 import { coursesData } from "./courses.seed.js";
 import { bookTemplatesData } from "./bookTemplates.seed.js";
 import { usersData } from "./users.seed.js";
 import { booksData } from "./books.seed.js";
+import { messagesData } from "./messages.seed.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -24,6 +26,7 @@ async function seed() {
     await BookTemplate.deleteMany({});
     await User.deleteMany({});
     await Book.deleteMany({});
+    await Message.deleteMany({});
     console.log("Cleared existing data");
 
     await Course.insertMany(coursesData);
@@ -66,6 +69,33 @@ async function seed() {
 
     await Book.insertMany(booksWithOwners);
     console.log(`Inserted ${booksData.length} books`);
+
+    // Create messages with actual user IDs
+    const messagesWithIds = await Promise.all(
+      messagesData.map(async (msg) => {
+        const sender = await User.findOne({ email: msg.senderEmail });
+        const receiver = await User.findOne({ email: msg.receiverEmail });
+
+        if (!sender || !receiver) {
+          console.warn(`Skipping message: sender or receiver not found`);
+          return null;
+        }
+
+        return {
+          sender: sender._id,
+          receiver: receiver._id,
+          messageType: msg.messageType,
+          content: msg.content,
+          read: msg.read,
+        };
+      })
+    );
+
+    const validMessages = messagesWithIds.filter((msg) => msg !== null);
+    if (validMessages.length > 0) {
+      await Message.insertMany(validMessages);
+      console.log(`Inserted ${validMessages.length} messages`);
+    }
 
     console.log("Seed completed successfully");
     process.exit(0);
