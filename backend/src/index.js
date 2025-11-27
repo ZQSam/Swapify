@@ -10,6 +10,7 @@ import bookRoutes from "./routes/book.routes.js";
 import requestRoutes from "./routes/request.routes.js";
 import userRoutes from "./routes/user.routes.js";
 import ratingRoutes from "./routes/rating.routes.js";
+import messageRoutes from "./routes/message.routes.js";
 import { errorHandler } from "./middleware/errorHandler.middleware.js";
 
 const app = express();
@@ -42,6 +43,7 @@ app.use("/api/books", bookRoutes);
 app.use("/api/requests", requestRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/ratings", ratingRoutes);
+app.use("/api/messages", messageRoutes);
 
 app.use((req, res) => res.status(404).json({ error: "Not found", path: req.path }));
 app.use(errorHandler);
