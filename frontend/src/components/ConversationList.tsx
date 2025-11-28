@@ -38,7 +38,7 @@ export function ConversationList({
         // Get message preview
         let messagePreview = '';
         if (conv.lastMessage.messageType === 'purchase_request') {
-          messagePreview = '📦 Purchase Request';
+          messagePreview = '[Purchase Request]';
         } else {
           messagePreview = conv.lastMessage.content || '';
         }
