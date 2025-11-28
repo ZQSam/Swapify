@@ -209,7 +209,11 @@ export const getMessagesWith = async (req, res) => {
       .populate("receiver", "nickname email")
       .populate({
         path: "purchaseRequest",
-        populate: { path: "book", select: "title price image" },
+        populate: [
+          { path: "book", select: "title author price image" },
+          { path: "buyer", select: "nickname email" },
+          { path: "seller", select: "nickname email" },
+        ],
       });
 
     // Mark all unread messages from other user as read
