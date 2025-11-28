@@ -64,6 +64,15 @@ export default function App() {
           />
 
           <Route
+            path="/messages/:userId"
+            element={
+              <ProtectedRoute>
+                <MessagesPage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
             path="/profile"
             element={
               <ProtectedRoute>

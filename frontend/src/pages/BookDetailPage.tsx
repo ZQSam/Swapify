@@ -38,7 +38,9 @@ export default function BookDetailPage() {
       navigate('/login');
       return;
     }
-    navigate('/messages');
+    if (book?.seller?._id) {
+      navigate(`/messages/${book.seller._id}`);
+    }
   };
 
   if (loading) {
