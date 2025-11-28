@@ -1,15 +1,40 @@
+import { useState, useEffect } from 'react';
 import { Search, List, MessageSquare, LogIn, UserPlus, User } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import { MessageAPI } from '../lib/api';
 
 export default function SiteHeader() {
   const { isAuthenticated, user, logout } = useAuth();
   const navigate = useNavigate();
+  const [unreadCount, setUnreadCount] = useState(0);
 
   const handleLogout = () => {
     logout();
     navigate('/login');
   };
+
+  // Poll for unread message count
+  useEffect(() => {
+    if (!isAuthenticated) {
+      setUnreadCount(0);
+      return;
+    }
+
+    const fetchUnreadCount = async () => {
+      try {
+        const data = await MessageAPI.getUnreadCount();
+        setUnreadCount(data.unreadCount);
+      } catch (error) {
+        console.error('Failed to fetch unread count:', error);
+      }
+    };
+
+    fetchUnreadCount();
+    const interval = setInterval(fetchUnreadCount, 10000); // Poll every 10 seconds
+
+    return () => clearInterval(interval);
+  }, [isAuthenticated]);
 
   return (
     <header className="topbar" style={{ position: 'fixed', top: 0, left: 0, right: 0, zIndex: 100 }}>
@@ -39,8 +64,21 @@ export default function SiteHeader() {
                 <Link className="nav-item" to="/my-books">
                   <List size={18} className="nav-ico" /> My Listings
                 </Link>
-                <Link className="nav-item" to="/messages">
+                <Link className="nav-item" to="/messages" style={{ position: 'relative' }}>
                   <MessageSquare size={18} className="nav-ico" /> Messages
+                  {unreadCount > 0 && (
+                    <span style={{
+                      marginLeft: '4px',
+                      padding: '2px 8px',
+                      backgroundColor: '#FF5F05',
+                      color: '#ffffff',
+                      fontSize: '12px',
+                      fontWeight: '600',
+                      borderRadius: '10px'
+                    }}>
+                      ({unreadCount})
+                    </span>
+                  )}
                 </Link>
 
                 <div className="nav-item" style={{

@@ -9,6 +9,7 @@ import BookDetailPage from "./pages/BookDetailPage";
 import MyBooksPage from "./pages/MyBooksPage";
 import BookFormPage from "./pages/BookFormPage";
 import ComponentsDemo from "./pages/ComponentsDemo";
+import { MessagesPage } from "./pages/MessagesPage";
 import SiteHeader from "./components/SiteHeader";
 import SiteFooter from "./components/SiteFooter";
 import ProtectedRoute from "./components/ProtectedRoute";
@@ -57,9 +58,7 @@ export default function App() {
             path="/messages"
             element={
               <ProtectedRoute>
-                <div style={{ paddingTop: 'var(--topbar-h)', padding: '32px 24px' }}>
-                  Messages page coming soon...
-                </div>
+                <MessagesPage />
               </ProtectedRoute>
             }
           />
