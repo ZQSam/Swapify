@@ -4,7 +4,7 @@ import { BookAPI } from '../lib/api';
 import type { Book } from '../lib/api';
 import { LoadingSpinner, Badge, RatingStars, Button } from '../components/ui';
 import { useAuth } from '../contexts/AuthContext';
-import { MessageSquare, ArrowLeft } from 'lucide-react';
+import { MessageSquare, ArrowLeft, Edit2 } from 'lucide-react';
 
 export default function BookDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -266,16 +266,14 @@ export default function BookDetailPage() {
             )}
 
             {isOwnBook && (
-              <div style={{
-                padding: '16px',
-                background: 'var(--color-gray-50)',
-                borderRadius: '8px',
-                textAlign: 'center',
-                color: 'var(--color-gray-700)',
-                fontSize: '14px',
-              }}>
-                This is your listing
-              </div>
+              <Button
+                variant="primary"
+                onClick={() => navigate(`/my-books/${book._id}/edit`)}
+                style={{ width: '100%', fontSize: '16px', padding: '16px' }}
+              >
+                <Edit2 size={20} />
+                Edit Listing
+              </Button>
             )}
           </div>
         </div>
