@@ -18,7 +18,10 @@ export const bookTemplatesData = [
     year: 2014,
     coverImage: "https://covers.openlibrary.org/b/isbn/9780132847377-L.jpg",
     commonCourses: [
-      { code: "CS 225", name: "Data Structures", term: "2025 Fall", section: "Section AL1" }
+      { code: "CS 225", name: "Data Structures", term: "2025 Fall", section: "Section AL1" },
+      { code: "CS 233", name: "Computer Architecture", term: "2025 Fall", section: "Section A" },
+      { code: "CS 173", name: "Discrete Structures", term: "2025 Fall", section: "Section A" },
+      { code: "CS 241", name: "System Programming", term: "2025 Fall", section: "Section A" }
     ]
   },
   {
@@ -29,7 +32,14 @@ export const bookTemplatesData = [
     year: 2009,
     coverImage: "https://covers.openlibrary.org/b/isbn/9780262033848-L.jpg",
     commonCourses: [
-      { code: "CS 374", name: "Algorithms & Models of Computation", term: "2026 Spring", section: "Section A" }
+      { code: "CS 374", name: "Algorithms & Models of Computation", term: "2025 Fall", section: "Section A" },
+      { code: "CS 374", name: "Algorithms & Models of Computation", term: "2026 Spring", section: "Section A" },
+      { code: "CS 341", name: "System Programming", term: "2025 Fall", section: "Section A" },
+      { code: "CS 440", name: "Artificial Intelligence", term: "2025 Fall", section: "Section A" },
+      { code: "CS 411", name: "Database Systems", term: "2025 Fall", section: "Section A" },
+      { code: "CS 418", name: "Interactive Computer Graphics", term: "2025 Fall", section: "Section A" },
+      { code: "CS 423", name: "Operating Systems Design", term: "2025 Fall", section: "Section A" },
+      { code: "CS 426", name: "Compiler Construction", term: "2025 Fall", section: "Section A" }
     ]
   },
   {
@@ -40,7 +50,8 @@ export const bookTemplatesData = [
     year: 2017,
     coverImage: "https://covers.openlibrary.org/b/isbn/9781305505797-L.jpg",
     commonCourses: [
-      { code: "ECON 302", name: "Intermediate Microeconomics", term: "2025 Fall", section: "Section A" }
+      { code: "ECON 302", name: "Intermediate Microeconomics", term: "2025 Fall", section: "Section A" },
+      { code: "ECON 233", name: "Macroeconomics", term: "2025 Winter", section: "Section A" }
     ]
   },
   {
