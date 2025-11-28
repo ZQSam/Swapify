@@ -63,7 +63,7 @@ export interface Book {
   image?: string;
   images?: string[];
   description?: string;
-  status: 'available' | 'pending' | 'sold';
+  status: 'available' | 'closed';
   createdAt: string;
   updatedAt: string;
 }
@@ -150,8 +150,8 @@ export const BookAPI = {
   }>) =>
     put<{ book: Book }>(`/api/books/${id}`, data),
 
-  delete: (id: string) =>
-    del<{ message: string }>(`/api/books/${id}`),
+  close: (id: string) =>
+    del<{ message: string; book: Book }>(`/api/books/${id}`),
 };
 
 export interface BookTemplateSuggestion {

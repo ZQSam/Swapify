@@ -9,6 +9,6 @@ router.get("/", optionalAuth, bookController.listBooks);
 router.get("/my/listings", requireAuth, bookController.getMyBooks);
 router.get("/:id", optionalAuth, bookController.getBook);
 router.put("/:id", requireAuth, bookController.updateBook);
-router.delete("/:id", requireAuth, bookController.deleteBook);
+router.delete("/:id", requireAuth, bookController.closeBook);
 
 export default router;

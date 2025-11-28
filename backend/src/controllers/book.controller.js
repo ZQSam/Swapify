@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { Book } from "../models/Book.model.js";
+import { PurchaseRequest } from "../models/PurchaseRequest.model.js";
 
 const createBookSchema = z.object({
   title: z.string().min(1),
@@ -143,7 +144,7 @@ export const updateBook = async (req, res) => {
   res.json({ book });
 };
 
-export const deleteBook = async (req, res) => {
+export const closeBook = async (req, res) => {
   const book = await Book.findById(req.params.id);
 
   if (!book) {
@@ -154,8 +155,17 @@ export const deleteBook = async (req, res) => {
     return res.status(403).json({ error: "Not authorized" });
   }
 
-  await book.deleteOne();
-  res.json({ message: "Book deleted" });
+  // Mark book as closed
+  book.status = 'closed';
+  await book.save();
+
+  // Reject all pending purchase requests for this book
+  await PurchaseRequest.updateMany(
+    { book: book._id, status: 'pending' },
+    { status: 'rejected' }
+  );
+
+  res.json({ message: "Book closed and all pending requests rejected", book });
 };
 
 export const getMyBooks = async (req, res) => {

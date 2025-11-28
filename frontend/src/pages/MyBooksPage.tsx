@@ -3,14 +3,14 @@ import { useNavigate } from 'react-router-dom';
 import { BookAPI } from '../lib/api';
 import type { Book } from '../lib/api';
 import { LoadingSpinner, Badge, Button } from '../components/ui';
-import { Plus, Edit2, Trash2 } from 'lucide-react';
+import { Plus, Edit2, XCircle } from 'lucide-react';
 
 export default function MyBooksPage() {
   const navigate = useNavigate();
   const [books, setBooks] = useState<Book[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [closingId, setClosingId] = useState<string | null>(null);
 
   useEffect(() => {
     loadMyBooks();
@@ -29,26 +29,28 @@ export default function MyBooksPage() {
     }
   };
 
-  const handleDelete = async (id: string, title: string) => {
-    if (!confirm(`Are you sure you want to delete "${title}"?`)) {
+  const handleClose = async (id: string, title: string) => {
+    if (!confirm(`Are you sure you want to close this listing for "${title}"?\n\nThis will reject all pending purchase requests.`)) {
       return;
     }
 
     try {
-      setDeletingId(id);
-      await BookAPI.delete(id);
-      setBooks(books.filter(book => book._id !== id));
+      setClosingId(id);
+      const response = await BookAPI.close(id);
+      // Update the book status in the list
+      setBooks(books.map(book =>
+        book._id === id ? response.book : book
+      ));
     } catch (err) {
-      alert(err instanceof Error ? err.message : 'Failed to delete book');
+      alert(err instanceof Error ? err.message : 'Failed to close listing');
     } finally {
-      setDeletingId(null);
+      setClosingId(null);
     }
   };
 
   const statusLabels = {
     available: 'Available',
-    pending: 'Pending Sale',
-    sold: 'Sold',
+    closed: 'Closed',
   };
 
   if (loading) {
@@ -263,25 +265,25 @@ export default function MyBooksPage() {
                   </button>
 
                   <button
-                    onClick={() => handleDelete(book._id, book.title)}
-                    disabled={deletingId === book._id}
+                    onClick={() => handleClose(book._id, book.title)}
+                    disabled={closingId === book._id || book.status === 'closed'}
                     style={{
                       padding: '8px 16px',
-                      backgroundColor: deletingId === book._id ? 'var(--color-gray-100)' : 'white',
-                      color: deletingId === book._id ? 'var(--color-gray-300)' : 'var(--color-error)',
-                      border: `1px solid ${deletingId === book._id ? 'var(--color-gray-100)' : 'var(--color-error)'}`,
+                      backgroundColor: closingId === book._id || book.status === 'closed' ? 'var(--color-gray-100)' : 'white',
+                      color: closingId === book._id || book.status === 'closed' ? 'var(--color-gray-300)' : 'var(--color-error)',
+                      border: `1px solid ${closingId === book._id || book.status === 'closed' ? 'var(--color-gray-100)' : 'var(--color-error)'}`,
                       borderRadius: '6px',
                       fontSize: '14px',
                       fontWeight: 600,
-                      cursor: deletingId === book._id ? 'not-allowed' : 'pointer',
+                      cursor: closingId === book._id || book.status === 'closed' ? 'not-allowed' : 'pointer',
                       display: 'flex',
                       alignItems: 'center',
                       gap: '6px',
                       whiteSpace: 'nowrap',
                     }}
                   >
-                    <Trash2 size={16} />
-                    {deletingId === book._id ? 'Deleting...' : 'Delete'}
+                    <XCircle size={16} />
+                    {closingId === book._id ? 'Closing...' : book.status === 'closed' ? 'Closed' : 'Close'}
                   </button>
                 </div>
               </div>
