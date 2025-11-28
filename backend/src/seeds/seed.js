@@ -8,11 +8,13 @@ import { BookTemplate } from "../models/BookTemplate.model.js";
 import { User } from "../models/User.model.js";
 import { Book } from "../models/Book.model.js";
 import { Message } from "../models/Message.model.js";
+import { PurchaseRequest } from "../models/PurchaseRequest.model.js";
 import { coursesData } from "./courses.seed.js";
 import { bookTemplatesData } from "./bookTemplates.seed.js";
 import { usersData } from "./users.seed.js";
 import { booksData } from "./books.seed.js";
 import { messagesData } from "./messages.seed.js";
+import { purchaseRequestsData } from "./purchaseRequests.seed.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -26,6 +28,7 @@ async function seed() {
     await BookTemplate.deleteMany({});
     await User.deleteMany({});
     await Book.deleteMany({});
+    await PurchaseRequest.deleteMany({});
     await Message.deleteMany({});
     console.log("Cleared existing data");
 
@@ -67,8 +70,37 @@ async function seed() {
       owner: insertedUsers[index % insertedUsers.length]._id
     }));
 
-    await Book.insertMany(booksWithOwners);
+    const insertedBooks = await Book.insertMany(booksWithOwners);
     console.log(`Inserted ${booksData.length} books`);
+
+    // Create purchase requests with actual user and book IDs
+    const purchaseRequestsWithIds = await Promise.all(
+      purchaseRequestsData.map(async (pr) => {
+        const buyer = await User.findOne({ email: pr.buyerEmail });
+        const seller = await User.findOne({ email: pr.sellerEmail });
+        const book = await Book.findOne({ title: pr.bookTitle });
+
+        if (!buyer || !seller || !book) {
+          console.warn(`Skipping purchase request: buyer, seller, or book not found`);
+          return null;
+        }
+
+        return {
+          buyer: buyer._id,
+          seller: seller._id,
+          book: book._id,
+          status: pr.status,
+          message: pr.message,
+        };
+      })
+    );
+
+    const validPurchaseRequests = purchaseRequestsWithIds.filter((pr) => pr !== null);
+    let insertedPurchaseRequests = [];
+    if (validPurchaseRequests.length > 0) {
+      insertedPurchaseRequests = await PurchaseRequest.insertMany(validPurchaseRequests);
+      console.log(`Inserted ${insertedPurchaseRequests.length} purchase requests`);
+    }
 
     // Create messages with actual user IDs
     const messagesWithIds = await Promise.all(
@@ -81,13 +113,30 @@ async function seed() {
           return null;
         }
 
-        return {
+        const messageData = {
           sender: sender._id,
           receiver: receiver._id,
           messageType: msg.messageType,
-          content: msg.content,
           read: msg.read,
         };
+
+        // Handle purchase_request messages
+        if (msg.messageType === 'purchase_request') {
+          if (msg.purchaseRequestIndex !== undefined && insertedPurchaseRequests[msg.purchaseRequestIndex]) {
+            messageData.purchaseRequest = insertedPurchaseRequests[msg.purchaseRequestIndex]._id;
+            if (msg.content) {
+              messageData.content = msg.content;
+            }
+          } else {
+            console.warn(`Skipping purchase_request message: purchase request not found`);
+            return null;
+          }
+        } else {
+          // Text message
+          messageData.content = msg.content;
+        }
+
+        return messageData;
       })
     );
 

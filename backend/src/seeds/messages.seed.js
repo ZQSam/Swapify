@@ -4,13 +4,6 @@
 export const messagesData = [
   // Conversation 1: User 1 (John) and User 2 (Jane) about a book
   {
-    senderEmail: "john.doe@illinois.edu",
-    receiverEmail: "jane.doe@illinois.edu",
-    messageType: "text",
-    content: "Hi! Is your Data Structures textbook still available?",
-    read: true,
-  },
-  {
     senderEmail: "jane.doe@illinois.edu",
     receiverEmail: "john.doe@illinois.edu",
     messageType: "text",
@@ -49,7 +42,14 @@ export const messagesData = [
     content: "Hey, do you still need a Physics textbook?",
     read: false,
   },
-];
 
-// Note: Purchase request messages will be created when actual purchase requests are made
-// They require a purchaseRequest ObjectId reference
+  // Purchase request message: John requests to buy Fluent React from Jane
+  {
+    senderEmail: "john.doe@illinois.edu",
+    receiverEmail: "jane.doe@illinois.edu",
+    messageType: "purchase_request",
+    purchaseRequestIndex: 0, // References first purchase request
+    content: "I'd like to buy this book",
+    read: false,
+  },
+];
