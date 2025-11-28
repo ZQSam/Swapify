@@ -1,14 +1,18 @@
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { PurchaseRequestAPI } from '../lib/api';
 import type { Message } from '../lib/api';
 
 interface PurchaseRequestCardProps {
   message: Message;
   isOwn: boolean;
+  onStatusChange?: () => void;
 }
 
-export function PurchaseRequestCard({ message, isOwn }: PurchaseRequestCardProps) {
+export function PurchaseRequestCard({ message, isOwn, onStatusChange }: PurchaseRequestCardProps) {
   const navigate = useNavigate();
   const pr = message.purchaseRequest;
+  const [processing, setProcessing] = useState(false);
 
   if (!pr) return null;
 
@@ -24,9 +28,79 @@ export function PurchaseRequestCard({ message, isOwn }: PurchaseRequestCardProps
     completed: '#6b7280',
   };
 
-  const handleViewBook = () => {
+  const handleBookClick = () => {
     navigate(`/books/${pr.book._id}`);
   };
+
+  const handleAccept = async () => {
+    if (processing) return;
+
+    const confirmed = window.confirm(
+      `Accept this purchase request for "${pr.book.title}"?\n\nBuyer: ${pr.buyer.nickname}`
+    );
+
+    if (!confirmed) return;
+
+    setProcessing(true);
+    try {
+      await PurchaseRequestAPI.accept(pr._id);
+      alert('Purchase request accepted successfully!');
+      onStatusChange?.();
+    } catch (error: any) {
+      console.error('Failed to accept request:', error);
+      alert(error.message || 'Failed to accept purchase request');
+    } finally {
+      setProcessing(false);
+    }
+  };
+
+  const handleReject = async () => {
+    if (processing) return;
+
+    const confirmed = window.confirm(
+      `Reject this purchase request for "${pr.book.title}"?\n\nBuyer: ${pr.buyer.nickname}`
+    );
+
+    if (!confirmed) return;
+
+    setProcessing(true);
+    try {
+      await PurchaseRequestAPI.reject(pr._id);
+      alert('Purchase request rejected.');
+      onStatusChange?.();
+    } catch (error: any) {
+      console.error('Failed to reject request:', error);
+      alert(error.message || 'Failed to reject purchase request');
+    } finally {
+      setProcessing(false);
+    }
+  };
+
+  const handleCancel = async () => {
+    if (processing) return;
+
+    const confirmed = window.confirm(
+      `Cancel this purchase request for "${pr.book.title}"?`
+    );
+
+    if (!confirmed) return;
+
+    setProcessing(true);
+    try {
+      await PurchaseRequestAPI.cancel(pr._id);
+      alert('Purchase request cancelled.');
+      onStatusChange?.();
+    } catch (error: any) {
+      console.error('Failed to cancel request:', error);
+      alert(error.message || 'Failed to cancel purchase request');
+    } finally {
+      setProcessing(false);
+    }
+  };
+
+  // Determine if current user is the buyer (sender) or seller (receiver)
+  const isBuyer = isOwn; // If it's own message, user is the buyer (sender)
+  const isPending = pr.status === 'pending';
 
   return (
     <div style={{
@@ -43,7 +117,7 @@ export function PurchaseRequestCard({ message, isOwn }: PurchaseRequestCardProps
           marginBottom: '4px'
         }}>
           <span style={{ fontSize: '14px', fontWeight: '500', color: '#374151' }}>
-            {message.sender.nickname}
+            {isOwn ? 'You' : message.sender.nickname}
           </span>
         </div>
 
@@ -66,7 +140,7 @@ export function PurchaseRequestCard({ message, isOwn }: PurchaseRequestCardProps
               color: '#92400e',
               marginBottom: '8px'
             }}>
-              📦 Purchase Request
+              Purchase Request
             </div>
             <div style={{
               display: 'inline-block',
@@ -82,8 +156,25 @@ export function PurchaseRequestCard({ message, isOwn }: PurchaseRequestCardProps
             </div>
           </div>
 
-          {/* Book Info */}
-          <div style={{ display: 'flex', gap: '12px' }}>
+          {/* Book Info - Clickable */}
+          <div
+            onClick={handleBookClick}
+            style={{
+              display: 'flex',
+              gap: '12px',
+              cursor: 'pointer',
+              padding: '8px',
+              margin: '-8px',
+              borderRadius: '8px',
+              transition: 'background-color 0.2s'
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.backgroundColor = '#f9fafb';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.backgroundColor = 'transparent';
+            }}
+          >
             {pr.book.image && (
               <img
                 src={pr.book.image}
@@ -145,31 +236,81 @@ export function PurchaseRequestCard({ message, isOwn }: PurchaseRequestCardProps
             </div>
           )}
 
-          {/* View Details Button */}
-          <button
-            onClick={handleViewBook}
-            style={{
-              marginTop: '12px',
-              width: '100%',
-              padding: '8px 16px',
-              backgroundColor: '#f3f4f6',
-              color: '#374151',
-              border: 'none',
-              borderRadius: '8px',
-              fontSize: '14px',
-              fontWeight: '500',
-              cursor: 'pointer',
-              transition: 'background-color 0.2s'
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.backgroundColor = '#e5e7eb';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.backgroundColor = '#f3f4f6';
-            }}
-          >
-            View Book Details
-          </button>
+          {/* Action Buttons */}
+          {isPending && (
+            <div style={{ marginTop: '12px', display: 'flex', gap: '8px' }}>
+              {isBuyer ? (
+                // Buyer (sender) sees Cancel button
+                <button
+                  onClick={handleCancel}
+                  disabled={processing}
+                  style={{
+                    flex: 1,
+                    padding: '8px 16px',
+                    backgroundColor: '#ef4444',
+                    color: '#ffffff',
+                    border: 'none',
+                    borderRadius: '8px',
+                    fontSize: '14px',
+                    fontWeight: '500',
+                    cursor: processing ? 'not-allowed' : 'pointer',
+                    opacity: processing ? 0.6 : 1,
+                    transition: 'opacity 0.2s'
+                  }}
+                >
+                  {processing ? 'Cancelling...' : 'Cancel'}
+                </button>
+              ) : (
+                // Seller (receiver) sees Accept and Reject buttons
+                <>
+                  <button
+                    onClick={handleReject}
+                    disabled={processing}
+                    style={{
+                      flex: 1,
+                      padding: '8px 16px',
+                      backgroundColor: '#f3f4f6',
+                      color: '#374151',
+                      border: '1px solid #e5e7eb',
+                      borderRadius: '8px',
+                      fontSize: '14px',
+                      fontWeight: '500',
+                      cursor: processing ? 'not-allowed' : 'pointer',
+                      opacity: processing ? 0.6 : 1,
+                      transition: 'background-color 0.2s'
+                    }}
+                    onMouseEnter={(e) => {
+                      if (!processing) e.currentTarget.style.backgroundColor = '#e5e7eb';
+                    }}
+                    onMouseLeave={(e) => {
+                      if (!processing) e.currentTarget.style.backgroundColor = '#f3f4f6';
+                    }}
+                  >
+                    Reject
+                  </button>
+                  <button
+                    onClick={handleAccept}
+                    disabled={processing}
+                    style={{
+                      flex: 1,
+                      padding: '8px 16px',
+                      backgroundColor: '#10b981',
+                      color: '#ffffff',
+                      border: 'none',
+                      borderRadius: '8px',
+                      fontSize: '14px',
+                      fontWeight: '500',
+                      cursor: processing ? 'not-allowed' : 'pointer',
+                      opacity: processing ? 0.6 : 1,
+                      transition: 'opacity 0.2s'
+                    }}
+                  >
+                    {processing ? 'Accepting...' : 'Accept'}
+                  </button>
+                </>
+              )}
+            </div>
+          )}
         </div>
 
         <div style={{

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { MessageAPI } from '../lib/api';
 import type { Conversation, Message } from '../lib/api';
 import { ConversationList } from '../components/ConversationList';
@@ -8,11 +8,11 @@ import { useAuth } from '../contexts/AuthContext';
 
 export function MessagesPage() {
   const { user } = useAuth();
-  const [searchParams] = useSearchParams();
-  const withUserId = searchParams.get('with');
+  const { userId } = useParams<{ userId?: string }>();
+  const navigate = useNavigate();
 
   const [conversations, setConversations] = useState<Conversation[]>([]);
-  const [selectedUserId, setSelectedUserId] = useState<string | null>(withUserId);
+  const [selectedUserId, setSelectedUserId] = useState<string | null>(userId || null);
   const [messages, setMessages] = useState<Message[]>([]);
   const [loadingConversations, setLoadingConversations] = useState(true);
   const [loadingMessages, setLoadingMessages] = useState(false);
@@ -67,7 +67,10 @@ export function MessagesPage() {
   // Select a conversation
   const handleSelectConversation = (userId: string) => {
     setSelectedUserId(userId);
+    navigate(`/messages/${userId}`);
     loadMessages(userId);
+    // Immediately refresh conversations to update unread counts
+    loadConversations();
   };
 
   // Initial load
@@ -75,13 +78,15 @@ export function MessagesPage() {
     loadConversations();
   }, []);
 
-  // Load messages when URL has ?with= parameter
+  // Load messages when URL has userId parameter
   useEffect(() => {
-    if (withUserId && !loadingConversations) {
-      setSelectedUserId(withUserId);
-      loadMessages(withUserId);
+    if (userId && !loadingConversations) {
+      setSelectedUserId(userId);
+      loadMessages(userId);
+      // Immediately refresh conversations to update unread counts
+      loadConversations();
     }
-  }, [withUserId, loadingConversations]);
+  }, [userId, loadingConversations]);
 
   // Polling for new messages
   useEffect(() => {
@@ -116,8 +121,13 @@ export function MessagesPage() {
     );
   }
 
+  // Get selected user from conversations, or create a temporary one for new conversations
   const selectedUser = selectedUserId
-    ? conversations.find((c) => c.user.id === selectedUserId)?.user
+    ? conversations.find((c) => c.user.id === selectedUserId)?.user || {
+        id: selectedUserId,
+        nickname: 'New Conversation',
+        email: ''
+      }
     : null;
 
   return (
@@ -182,6 +192,7 @@ export function MessagesPage() {
               otherUser={selectedUser}
               currentUserId={user.id}
               onSendMessage={handleSendMessage}
+              onRefresh={() => loadMessages(selectedUserId)}
               loading={loadingMessages}
             />
           ) : (

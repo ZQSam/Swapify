@@ -8,6 +8,7 @@ interface ChatWindowProps {
   otherUser: { id: string; nickname: string };
   currentUserId: string;
   onSendMessage: (content: string) => Promise<void>;
+  onRefresh?: () => void;
   loading: boolean;
 }
 
@@ -16,6 +17,7 @@ export function ChatWindow({
   otherUser,
   currentUserId,
   onSendMessage,
+  onRefresh,
   loading,
 }: ChatWindowProps) {
   const [inputValue, setInputValue] = useState('');
@@ -114,6 +116,7 @@ export function ChatWindow({
                     key={message._id}
                     message={message}
                     isOwn={isOwn}
+                    onStatusChange={onRefresh}
                   />
                 );
               }

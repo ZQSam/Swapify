@@ -283,3 +283,20 @@ export const MessageAPI = {
   getUnreadCount: () =>
     get<{ unreadCount: number }>('/api/messages/unread-count'),
 };
+
+export const PurchaseRequestAPI = {
+  accept: (id: string) =>
+    patch<{ ok: true; purchaseRequest: PurchaseRequest; message: string }>(
+      `/api/purchase-requests/${id}/accept`
+    ),
+
+  reject: (id: string) =>
+    patch<{ ok: true; purchaseRequest: PurchaseRequest; message: string }>(
+      `/api/purchase-requests/${id}/reject`
+    ),
+
+  cancel: (id: string) =>
+    patch<{ ok: true; purchaseRequest: PurchaseRequest; message: string }>(
+      `/api/purchase-requests/${id}/cancel`
+    ),
+};
