@@ -193,3 +193,93 @@ export const CourseAPI = {
   getByTerm: (term: string) =>
     get<{ courses: Course[] }>(`/api/courses/by-term?term=${encodeURIComponent(term)}`),
 };
+
+async function patch<T>(path: string, body?: any): Promise<T> {
+  const res = await fetch(`${API_BASE}${path}`, {
+    method: "PATCH",
+    headers: getAuthHeaders(),
+    body: body ? JSON.stringify(body) : undefined,
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data?.error || "Request failed");
+  return data as T;
+}
+
+export interface PurchaseRequest {
+  _id: string;
+  book: {
+    _id: string;
+    title: string;
+    author?: string;
+    price: number;
+    image?: string;
+  };
+  buyer: {
+    _id: string;
+    nickname: string;
+  };
+  seller: {
+    _id: string;
+    nickname: string;
+  };
+  status: 'pending' | 'accepted' | 'rejected' | 'completed';
+  createdAt: string;
+}
+
+export interface Message {
+  _id: string;
+  sender: {
+    _id: string;
+    nickname: string;
+    email: string;
+  };
+  receiver: {
+    _id: string;
+    nickname: string;
+    email: string;
+  };
+  messageType: 'text' | 'purchase_request';
+  content?: string;
+  purchaseRequest?: PurchaseRequest;
+  read: boolean;
+  createdAt: string;
+}
+
+export interface Conversation {
+  user: {
+    id: string;
+    nickname: string;
+    email: string;
+  };
+  lastMessage: {
+    content: string;
+    createdAt: string;
+    read: boolean;
+    messageType: string;
+  };
+  unreadCount: number;
+}
+
+export const MessageAPI = {
+  send: (receiverId: string, content: string) =>
+    post<{ message: Message }>('/api/messages', { receiverId, content }),
+
+  sendPurchaseRequest: (receiverId: string, purchaseRequestId: string, content?: string) =>
+    post<{ message: Message }>('/api/messages/purchase-request', {
+      receiverId,
+      purchaseRequestId,
+      content,
+    }),
+
+  getConversations: () =>
+    get<{ conversations: Conversation[] }>('/api/messages/conversations'),
+
+  getMessagesWith: (userId: string) =>
+    get<{ messages: Message[] }>(`/api/messages/with/${userId}`),
+
+  markAsRead: (messageId: string) =>
+    patch<{ message: Message }>(`/api/messages/${messageId}/read`),
+
+  getUnreadCount: () =>
+    get<{ unreadCount: number }>('/api/messages/unread-count'),
+};
