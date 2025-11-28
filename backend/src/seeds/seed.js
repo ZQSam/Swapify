@@ -65,10 +65,24 @@ async function seed() {
     });
 
     // Distribute books among users
-    const booksWithOwners = booksWithImages.map((book, index) => ({
-      ...book,
-      owner: insertedUsers[index % insertedUsers.length]._id
-    }));
+    const booksWithOwners = booksWithImages.map((book, index) => {
+      let ownerId;
+
+      if (book.ownerEmail) {
+        // Find user by email if specified
+        const owner = insertedUsers.find(u => u.email === book.ownerEmail);
+        ownerId = owner ? owner._id : insertedUsers[index % insertedUsers.length]._id;
+      } else {
+        // Default distribution
+        ownerId = insertedUsers[index % insertedUsers.length]._id;
+      }
+
+      const { ownerEmail, ...bookData } = book;
+      return {
+        ...bookData,
+        owner: ownerId
+      };
+    });
 
     const insertedBooks = await Book.insertMany(booksWithOwners);
     console.log(`Inserted ${booksData.length} books`);

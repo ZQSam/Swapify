@@ -131,6 +131,7 @@ export const booksData = [
     price: 15.00,
     description: "Build fast, performant, and intuitive web applications.",
     status: "available",
+    ownerEmail: "jane.doe@illinois.edu",
   },
   {
     title: "Business Analytics",
