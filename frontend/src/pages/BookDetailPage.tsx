@@ -75,8 +75,7 @@ export default function BookDetailPage() {
   const isOwnBook = user?.id === book.seller?._id;
   const statusLabels = {
     available: 'Available',
-    pending: 'Pending Sale',
-    sold: 'Sold',
+    closed: 'Closed',
   };
 
   return (

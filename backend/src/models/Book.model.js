@@ -16,7 +16,7 @@ const bookSchema = new mongoose.Schema(
     description: String,
     image: String,
     meetingLocation: String,
-    status: { type: String, enum: ['available', 'pending', 'sold'], default: 'available' },
+    status: { type: String, enum: ['available', 'closed'], default: 'available' },
     owner: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
   },
   { timestamps: true }

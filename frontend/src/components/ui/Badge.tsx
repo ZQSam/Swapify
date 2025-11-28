@@ -2,7 +2,7 @@ import type { ReactNode } from 'react';
 
 export interface BadgeProps {
   children: ReactNode;
-  variant?: 'available' | 'pending' | 'sold';
+  variant?: 'available' | 'closed';
 }
 
 export default function Badge({ children, variant = 'available' }: BadgeProps) {
@@ -11,13 +11,9 @@ export default function Badge({ children, variant = 'available' }: BadgeProps) {
       background: '#E8F5E9',
       color: 'var(--color-success)',
     },
-    pending: {
-      background: '#FFF4E5',
-      color: 'var(--color-warning)',
-    },
-    sold: {
-      background: 'var(--color-gray-50)',
-      color: 'var(--color-gray-300)',
+    closed: {
+      background: '#FFEBEE',
+      color: '#C62828',
     },
   };
 
