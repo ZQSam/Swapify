@@ -1,25 +1,27 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { UserAPI, RatingAPI } from '../lib/api';
-import type { UserProfile, Rating, RatableRequest } from '../lib/api';
+import type { UserProfile, Rating } from '../lib/api';
 import { LoadingSpinner, RatingStars, Button } from '../components/ui';
 import { useAuth } from '../contexts/AuthContext';
 import { ArrowLeft, LogOut, Star } from 'lucide-react';
 
 function RatingForm({
-  request,
+  userId,
+  existingRating,
   onSubmit,
   isSubmitting
 }: {
-  request: RatableRequest;
-  onSubmit: (requestId: string, score: number, comment: string) => void;
+  userId: string;
+  existingRating: { score: number; comment?: string } | null;
+  onSubmit: (score: number, comment: string) => void;
   isSubmitting: boolean;
 }) {
-  const [score, setScore] = useState(request.existingRating?.score || 0);
-  const [comment, setComment] = useState(request.existingRating?.comment || '');
+  const [score, setScore] = useState(existingRating?.score || 0);
+  const [comment, setComment] = useState(existingRating?.comment || '');
   const [hoveredStar, setHoveredStar] = useState(0);
 
-  const hasExistingRating = !!request.existingRating;
+  const hasExistingRating = !!existingRating;
 
   return (
     <div style={{
@@ -29,12 +31,12 @@ function RatingForm({
       marginBottom: '16px',
     }}>
       <div style={{
-        fontSize: '14px',
+        fontSize: '16px',
         fontWeight: 600,
         color: 'var(--color-gray-900)',
         marginBottom: '12px',
       }}>
-        Transaction: {request.book.title}
+        {hasExistingRating ? 'Update Your Rating' : 'Rate This User'}
       </div>
 
       <div style={{ marginBottom: '16px' }}>
@@ -43,7 +45,7 @@ function RatingForm({
           color: 'var(--color-gray-700)',
           marginBottom: '8px',
         }}>
-          Rating {hasExistingRating && '(Already rated - you can update)'}
+          Rating
         </div>
         <div style={{ display: 'flex', gap: '4px' }}>
           {[1, 2, 3, 4, 5].map((star) => (
@@ -97,7 +99,7 @@ function RatingForm({
 
       <Button
         variant="primary"
-        onClick={() => onSubmit(request._id, score, comment)}
+        onClick={() => onSubmit(score, comment)}
         disabled={score === 0 || isSubmitting}
       >
         {isSubmitting ? 'Submitting...' : (hasExistingRating ? 'Update Rating' : 'Submit Rating')}
@@ -112,10 +114,10 @@ export default function ProfilePage() {
   const { user, logout } = useAuth();
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [ratings, setRatings] = useState<Rating[]>([]);
-  const [ratableRequests, setRatableRequests] = useState<RatableRequest[]>([]);
+  const [existingRating, setExistingRating] = useState<{ score: number; comment?: string } | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [submittingRating, setSubmittingRating] = useState<string | null>(null);
+  const [submittingRating, setSubmittingRating] = useState(false);
 
   const isOwnProfile = user?.id === id;
 
@@ -124,7 +126,7 @@ export default function ProfilePage() {
       loadProfile();
       loadRatings();
       if (!isOwnProfile && user) {
-        loadRatableRequests();
+        loadExistingRating();
       }
     }
   }, [id, isOwnProfile, user]);
@@ -155,27 +157,30 @@ export default function ProfilePage() {
     }
   };
 
-  const loadRatableRequests = async () => {
+  const loadExistingRating = async () => {
     if (!id) return;
 
     try {
-      const response = await UserAPI.getRatableRequests(id);
-      setRatableRequests(response.requests);
+      const response = await UserAPI.getExistingRating(id);
+      setExistingRating(response.existingRating);
     } catch (err) {
-      console.error('Failed to load ratable requests:', err);
+      console.error('Failed to load existing rating:', err);
     }
   };
 
-  const handleSubmitRating = async (requestId: string, score: number, comment: string) => {
+  const handleSubmitRating = async (score: number, comment: string) => {
+    if (!id) return;
+
     try {
-      setSubmittingRating(requestId);
-      await RatingAPI.create(requestId, score, comment || undefined);
+      setSubmittingRating(true);
+      await RatingAPI.create(id, score, comment || undefined);
       await loadRatings();
-      await loadRatableRequests();
+      await loadExistingRating();
+      alert('Rating submitted successfully!');
     } catch (err) {
       alert(err instanceof Error ? err.message : 'Failed to submit rating');
     } finally {
-      setSubmittingRating(null);
+      setSubmittingRating(false);
     }
   };
 
@@ -333,7 +338,7 @@ export default function ProfilePage() {
           )}
         </div>
 
-        {!isOwnProfile && ratableRequests.length > 0 && (
+        {!isOwnProfile && id && (
           <div style={{
             backgroundColor: 'white',
             border: '1px solid var(--color-gray-100)',
@@ -347,23 +352,23 @@ export default function ProfilePage() {
               color: 'var(--color-gray-900)',
               margin: '0 0 16px 0',
             }}>
-              Rate Your Transactions
+              {existingRating ? 'Your Rating' : 'Rate This User'}
             </h2>
             <p style={{
               fontSize: '14px',
               color: 'var(--color-gray-700)',
               marginBottom: '24px',
             }}>
-              You can rate your completed transactions with {profile?.nickname}
+              {existingRating
+                ? `You can update your rating for ${profile?.nickname}`
+                : `Share your experience with ${profile?.nickname}`}
             </p>
-            {ratableRequests.map((request) => (
-              <RatingForm
-                key={request._id}
-                request={request}
-                onSubmit={handleSubmitRating}
-                isSubmitting={submittingRating === request._id}
-              />
-            ))}
+            <RatingForm
+              userId={id}
+              existingRating={existingRating}
+              onSubmit={handleSubmitRating}
+              isSubmitting={submittingRating}
+            />
           </div>
         )}
 

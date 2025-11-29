@@ -350,11 +350,11 @@ export const UserAPI = {
   getRatings: (id: string) =>
     get<{ ratings: Rating[] }>(`/api/users/${id}/ratings`),
 
-  getRatableRequests: (id: string) =>
-    get<{ requests: RatableRequest[] }>(`/api/users/${id}/ratable-requests`),
+  getExistingRating: (id: string) =>
+    get<{ existingRating: { _id: string; score: number; comment?: string } | null }>(`/api/users/${id}/existing-rating`),
 };
 
 export const RatingAPI = {
-  create: (requestId: string, score: number, comment?: string) =>
-    post<{ rating: Rating }>('/api/ratings', { requestId, score, comment }),
+  create: (rateeId: string, score: number, comment?: string) =>
+    post<{ rating: Rating }>('/api/ratings', { rateeId, score, comment }),
 };
