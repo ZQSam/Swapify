@@ -77,7 +77,6 @@ export function ConversationList({
               </h3>
               {conv.unreadCount > 0 && (
                 <span style={{
-                  display: 'inline-block',
                   minWidth: '20px',
                   height: '20px',
                   padding: '0 6px',

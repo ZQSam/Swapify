@@ -90,7 +90,7 @@ export default function MyBooksPage() {
       background: 'var(--color-gray-50)',
     }}>
       <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '32px 24px' }}>
-        {/* Header */}
+        
         <div style={{
           display: 'flex',
           justifyContent: 'space-between',
@@ -115,7 +115,7 @@ export default function MyBooksPage() {
           </Button>
         </div>
 
-        {/* Books List */}
+        
         {books.length === 0 ? (
           <div style={{
             backgroundColor: 'white',
@@ -149,7 +149,7 @@ export default function MyBooksPage() {
                   gap: '24px',
                 }}
               >
-                {/* Book Image */}
+                
                 <div
                   onClick={() => navigate(`/books/${book._id}`)}
                   style={{
@@ -171,11 +171,14 @@ export default function MyBooksPage() {
                   {!book.image && 'No Image'}
                 </div>
 
-                {/* Book Details */}
+                
                 <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
-                  <div style={{ marginBottom: '8px' }}>
-                    <Badge variant={book.status}>{statusLabels[book.status]}</Badge>
-                  </div>
+                  
+                  {book.status === 'closed' && (
+                    <div style={{ marginBottom: '8px' }}>
+                      <Badge variant={book.status}>{statusLabels[book.status]}</Badge>
+                    </div>
+                  )}
 
                   <div style={{
                     fontSize: '12px',
@@ -236,7 +239,7 @@ export default function MyBooksPage() {
                   </div>
                 </div>
 
-                {/* Actions */}
+                
                 <div style={{
                   display: 'flex',
                   flexDirection: 'column',

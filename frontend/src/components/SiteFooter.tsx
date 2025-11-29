@@ -7,7 +7,7 @@ export default function SiteFooter() {
         alignItems: 'center',
         gap: '4px'
       }}>
-        {/* Navy background: BookSwap orange, Store white */}
+        
         <div style={{
           fontSize: '18px',
           fontWeight: 600

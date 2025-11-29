@@ -58,7 +58,7 @@ export function ChatWindow({
       height: '100%',
       width: '100%'
     }}>
-      {/* Header */}
+      
       <div style={{
         padding: '20px 24px',
         borderBottom: '1px solid #e5e7eb',
@@ -75,7 +75,7 @@ export function ChatWindow({
         </h2>
       </div>
 
-      {/* Messages Area */}
+      
       <div style={{
         flex: 1,
         overflowY: 'auto',
@@ -134,7 +134,7 @@ export function ChatWindow({
         )}
       </div>
 
-      {/* Input Area */}
+      
       <div style={{
         padding: '20px 24px',
         backgroundColor: '#ffffff',

@@ -46,7 +46,7 @@ export default function ComponentsDemo() {
           UI Components Demo
         </h1>
 
-        {/* Buttons */}
+        
         <Card style={{ padding: '24px', marginBottom: '24px' }}>
           <h2 style={{ fontSize: '24px', fontWeight: 700, marginBottom: '16px' }}>
             Buttons
@@ -71,7 +71,7 @@ export default function ComponentsDemo() {
           </div>
         </Card>
 
-        {/* Inputs */}
+        
         <Card style={{ padding: '24px', marginBottom: '24px' }}>
           <h2 style={{ fontSize: '24px', fontWeight: 700, marginBottom: '16px' }}>
             Inputs
@@ -93,7 +93,7 @@ export default function ComponentsDemo() {
           </div>
         </Card>
 
-        {/* Search and Autocomplete */}
+        
         <Card style={{ padding: '24px', marginBottom: '24px' }}>
           <h2 style={{ fontSize: '24px', fontWeight: 700, marginBottom: '16px' }}>
             Search & Autocomplete
@@ -114,7 +114,7 @@ export default function ComponentsDemo() {
           </div>
         </Card>
 
-        {/* Badges & Ratings */}
+        
         <Card style={{ padding: '24px', marginBottom: '24px' }}>
           <h2 style={{ fontSize: '24px', fontWeight: 700, marginBottom: '16px' }}>
             Badges & Ratings
@@ -131,7 +131,7 @@ export default function ComponentsDemo() {
           </div>
         </Card>
 
-        {/* Modal & Toast */}
+        
         <Card style={{ padding: '24px', marginBottom: '24px' }}>
           <h2 style={{ fontSize: '24px', fontWeight: 700, marginBottom: '16px' }}>
             Modal & Toast
@@ -144,7 +144,7 @@ export default function ComponentsDemo() {
           </div>
         </Card>
 
-        {/* Loading Spinner */}
+        
         <Card style={{ padding: '24px', marginBottom: '24px' }}>
           <h2 style={{ fontSize: '24px', fontWeight: 700, marginBottom: '16px' }}>
             Loading Spinner
@@ -152,7 +152,7 @@ export default function ComponentsDemo() {
           <LoadingSpinner />
         </Card>
 
-        {/* Book Cards */}
+        
         <h2
           style={{
             fontSize: '24px',
@@ -214,7 +214,7 @@ export default function ComponentsDemo() {
           />
         </div>
 
-        {/* Modal */}
+        
         <Modal
           isOpen={showModal}
           onClose={() => setShowModal(false)}
@@ -226,7 +226,7 @@ export default function ComponentsDemo() {
           <Button onClick={() => setShowModal(false)}>Close</Button>
         </Modal>
 
-        {/* Toast */}
+        
         {showToast && (
           <Toast
             message="Operation completed successfully!"

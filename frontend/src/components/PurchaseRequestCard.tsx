@@ -128,7 +128,7 @@ export function PurchaseRequestCard({ message, isOwn, onStatusChange }: Purchase
           border: isOwn ? '2px solid #FF5F05' : '1px solid #e5e7eb',
           boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)'
         }}>
-          {/* Purchase Request Header */}
+          
           <div style={{ marginBottom: '12px' }}>
             <div style={{
               display: 'inline-block',
@@ -156,7 +156,7 @@ export function PurchaseRequestCard({ message, isOwn, onStatusChange }: Purchase
             </div>
           </div>
 
-          {/* Book Info - Clickable */}
+          
           <div
             onClick={handleBookClick}
             style={{
@@ -217,7 +217,7 @@ export function PurchaseRequestCard({ message, isOwn, onStatusChange }: Purchase
             </div>
           </div>
 
-          {/* Optional Text Content */}
+          
           {message.content && (
             <div style={{
               marginTop: '12px',
@@ -236,7 +236,7 @@ export function PurchaseRequestCard({ message, isOwn, onStatusChange }: Purchase
             </div>
           )}
 
-          {/* Action Buttons */}
+          
           {isPending && (
             <div style={{ marginTop: '12px', display: 'flex', gap: '8px' }}>
               {isBuyer ? (

@@ -141,7 +141,7 @@ export function MessagesPage() {
         display: 'flex',
         height: 'calc(100vh - var(--topbar-h) - var(--bottombar-h))'
       }}>
-        {/* Left Sidebar - Conversation List */}
+        
         <div style={{
           width: '320px',
           borderRight: '1px solid #e5e7eb',
@@ -180,7 +180,7 @@ export function MessagesPage() {
           )}
         </div>
 
-        {/* Right Side - Chat Window */}
+        
         <div style={{
           flex: 1,
           display: 'flex',
