@@ -4,11 +4,13 @@ const ratingSchema = new mongoose.Schema(
   {
     rater: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
     ratee: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true, index: true },
-    request: { type: mongoose.Schema.Types.ObjectId, ref: 'PurchaseRequest', required: true },
     score: { type: Number, required: true, min: 1, max: 5 },
     comment: String,
   },
   { timestamps: true }
 );
+
+// Ensure one user can only rate another user once
+ratingSchema.index({ rater: 1, ratee: 1 }, { unique: true });
 
 export const Rating = mongoose.model("Rating", ratingSchema);

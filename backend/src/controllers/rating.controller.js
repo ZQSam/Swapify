@@ -1,63 +1,54 @@
 import { z } from "zod";
 import { Rating } from "../models/Rating.model.js";
-import { PurchaseRequest } from "../models/PurchaseRequest.model.js";
 import { User } from "../models/User.model.js";
 
 const createRatingSchema = z.object({
-  requestId: z.string(),
+  rateeId: z.string(),
   score: z.number().int().min(1).max(5),
   comment: z.string().max(500).optional(),
 });
 
 export const createRating = async (req, res) => {
-  const { requestId, score, comment } = createRatingSchema.parse(req.body);
+  const { rateeId, score, comment } = createRatingSchema.parse(req.body);
 
-  const request = await PurchaseRequest.findById(requestId);
-  if (!request) {
-    return res.status(404).json({ error: "Request not found" });
+  // Check if ratee exists
+  const rateeUser = await User.findById(rateeId);
+  if (!rateeUser) {
+    return res.status(404).json({ error: "User not found" });
   }
 
-  if (request.status !== 'completed') {
-    return res.status(400).json({ error: "Can only rate completed transactions" });
-  }
-
-  const isSeller = request.seller.toString() === req.user._id.toString();
-  const isBuyer = request.buyer.toString() === req.user._id.toString();
-
-  if (!isSeller && !isBuyer) {
-    return res.status(403).json({ error: "Not authorized" });
-  }
-
-  const ratee = isSeller ? request.buyer : request.seller;
-
-  if (ratee.toString() === req.user._id.toString()) {
+  // Cannot rate yourself
+  if (rateeId === req.user._id.toString()) {
     return res.status(400).json({ error: "Cannot rate yourself" });
   }
 
+  // Check if rating already exists
   const existing = await Rating.findOne({
     rater: req.user._id,
-    request: requestId
+    ratee: rateeId
   });
 
   let rating;
   if (existing) {
+    // Update existing rating
     existing.score = score;
     existing.comment = comment;
     rating = await existing.save();
   } else {
+    // Create new rating
     rating = await Rating.create({
       rater: req.user._id,
-      ratee,
-      request: requestId,
+      ratee: rateeId,
       score,
       comment
     });
   }
 
-  const ratings = await Rating.find({ ratee });
+  // Recalculate average rating for ratee
+  const ratings = await Rating.find({ ratee: rateeId });
   const avgRating = ratings.reduce((sum, r) => sum + r.score, 0) / ratings.length;
 
-  await User.findByIdAndUpdate(ratee, {
+  await User.findByIdAndUpdate(rateeId, {
     averageRating: avgRating,
     ratingCount: ratings.length
   });
@@ -82,7 +73,7 @@ export const getUserRatings = async (req, res) => {
   });
 };
 
-export const getRatableRequests = async (req, res) => {
+export const getExistingRating = async (req, res) => {
   const targetUserId = req.params.id;
 
   if (!req.user) {
@@ -90,36 +81,19 @@ export const getRatableRequests = async (req, res) => {
   }
 
   if (targetUserId === req.user._id.toString()) {
-    return res.json({ requests: [] });
+    return res.json({ existingRating: null });
   }
 
-  const requests = await PurchaseRequest.find({
-    $or: [
-      { buyer: req.user._id, seller: targetUserId, status: 'completed' },
-      { seller: req.user._id, buyer: targetUserId, status: 'completed' }
-    ]
-  }).populate('book', 'title');
+  const existingRating = await Rating.findOne({
+    rater: req.user._id,
+    ratee: targetUserId
+  });
 
-  const requestsWithRatings = await Promise.all(
-    requests.map(async (request) => {
-      const existingRating = await Rating.findOne({
-        rater: req.user._id,
-        request: request._id
-      });
-
-      return {
-        _id: request._id,
-        book: request.book,
-        status: request.status,
-        createdAt: request.createdAt,
-        existingRating: existingRating ? {
-          _id: existingRating._id,
-          score: existingRating.score,
-          comment: existingRating.comment
-        } : null
-      };
-    })
-  );
-
-  res.json({ requests: requestsWithRatings });
+  res.json({
+    existingRating: existingRating ? {
+      _id: existingRating._id,
+      score: existingRating.score,
+      comment: existingRating.comment
+    } : null
+  });
 };

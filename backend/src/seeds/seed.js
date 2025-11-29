@@ -196,15 +196,9 @@ async function seed() {
           return null;
         }
 
-        if (rating.requestIndex === undefined || !insertedPurchaseRequests[rating.requestIndex]) {
-          console.warn(`Skipping rating: purchase request not found`);
-          return null;
-        }
-
         return {
           rater: rater._id,
           ratee: ratee._id,
-          request: insertedPurchaseRequests[rating.requestIndex]._id,
           score: rating.score,
           comment: rating.comment,
         };
