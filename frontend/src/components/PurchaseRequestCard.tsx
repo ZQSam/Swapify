@@ -101,6 +101,13 @@ export function PurchaseRequestCard({ message, isOwn, onStatusChange }: Purchase
   // Determine if current user is the buyer (sender) or seller (receiver)
   const isBuyer = isOwn; // If it's own message, user is the buyer (sender)
   const isPending = pr.status === 'pending';
+  const isCompleted = pr.status === 'completed';
+
+  const handleWriteReview = () => {
+    // Navigate to the other party's profile page
+    const targetUserId = isBuyer ? pr.seller._id : pr.buyer._id;
+    navigate(`/users/${targetUserId}`);
+  };
 
   return (
     <div style={{
@@ -236,7 +243,7 @@ export function PurchaseRequestCard({ message, isOwn, onStatusChange }: Purchase
             </div>
           )}
 
-          
+
           {isPending && (
             <div style={{ marginTop: '12px', display: 'flex', gap: '8px' }}>
               {isBuyer ? (
@@ -309,6 +316,35 @@ export function PurchaseRequestCard({ message, isOwn, onStatusChange }: Purchase
                   </button>
                 </>
               )}
+            </div>
+          )}
+
+
+          {isCompleted && (
+            <div style={{ marginTop: '12px' }}>
+              <button
+                onClick={handleWriteReview}
+                style={{
+                  width: '100%',
+                  padding: '8px 16px',
+                  backgroundColor: '#FF5F05',
+                  color: '#ffffff',
+                  border: 'none',
+                  borderRadius: '8px',
+                  fontSize: '14px',
+                  fontWeight: '500',
+                  cursor: 'pointer',
+                  transition: 'opacity 0.2s'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.opacity = '0.9';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.opacity = '1';
+                }}
+              >
+                Write Review
+              </button>
             </div>
           )}
         </div>
