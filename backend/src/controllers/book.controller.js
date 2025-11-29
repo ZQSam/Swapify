@@ -70,28 +70,25 @@ export const listBooks = async (req, res) => {
       .sort({ [sortBy]: sortOrder })
       .skip(skip)
       .limit(parseInt(limit))
-      .populate('owner', 'nickname avatar bio'),
+      .populate('owner', 'nickname avatar bio averageRating ratingCount'),
     Book.countDocuments(query)
   ]);
 
-  // Attach rating stats to each owner and transform to seller
-  const booksWithRatings = await Promise.all(
-    books.map(async (book) => {
-      const bookObj = book.toObject();
-      if (bookObj.owner) {
-        const ratings = await bookObj.owner.getRatingStats?.() || { averageRating: 0, ratingCount: 0 };
-        bookObj.seller = {
-          _id: bookObj.owner._id,
-          nickname: bookObj.owner.nickname,
-          avatar: bookObj.owner.avatar,
-          bio: bookObj.owner.bio,
-          ...ratings
-        };
-        delete bookObj.owner;
-      }
-      return bookObj;
-    })
-  );
+  const booksWithRatings = books.map((book) => {
+    const bookObj = book.toObject();
+    if (bookObj.owner) {
+      bookObj.seller = {
+        _id: bookObj.owner._id,
+        nickname: bookObj.owner.nickname,
+        avatar: bookObj.owner.avatar,
+        bio: bookObj.owner.bio,
+        averageRating: bookObj.owner.averageRating || 0,
+        ratingCount: bookObj.owner.ratingCount || 0
+      };
+      delete bookObj.owner;
+    }
+    return bookObj;
+  });
 
   res.json({
     ok: true,
@@ -104,7 +101,7 @@ export const listBooks = async (req, res) => {
 
 export const getBook = async (req, res) => {
   const book = await Book.findById(req.params.id)
-    .populate('owner', 'nickname avatar bio');
+    .populate('owner', 'nickname avatar bio averageRating ratingCount');
 
   if (!book) {
     return res.status(404).json({ error: "Book not found" });
@@ -112,13 +109,13 @@ export const getBook = async (req, res) => {
 
   const bookObj = book.toObject();
   if (bookObj.owner) {
-    const ratings = await book.owner.getRatingStats();
     bookObj.seller = {
       _id: bookObj.owner._id,
       nickname: bookObj.owner.nickname,
       avatar: bookObj.owner.avatar,
       bio: bookObj.owner.bio,
-      ...ratings
+      averageRating: bookObj.owner.averageRating || 0,
+      ratingCount: bookObj.owner.ratingCount || 0
     };
     delete bookObj.owner;
   }
