@@ -38,7 +38,30 @@ async function seed() {
     await Course.insertMany(coursesData);
     console.log(`Inserted ${coursesData.length} courses`);
 
-    await BookTemplate.insertMany(bookTemplatesData);
+    // Load book template cover images and convert to base64
+    const bookTemplatesWithImages = bookTemplatesData.map((template, index) => {
+      const imagePath = path.join(__dirname, 'images', `book${index + 1}.jpg`);
+      let imageBase64 = null;
+
+      if (fs.existsSync(imagePath)) {
+        try {
+          const imageBuffer = fs.readFileSync(imagePath);
+          imageBase64 = `data:image/jpeg;base64,${imageBuffer.toString('base64')}`;
+          console.log(`Loaded cover image for template ${index + 1}: ${template.title}`);
+        } catch (error) {
+          console.warn(`Failed to load cover image for template ${index + 1}:`, error.message);
+        }
+      } else {
+        console.warn(`Cover image not found for template ${index + 1}: ${imagePath}`);
+      }
+
+      return {
+        ...template,
+        coverImage: imageBase64
+      };
+    });
+
+    await BookTemplate.insertMany(bookTemplatesWithImages);
     console.log(`Inserted ${bookTemplatesData.length} book templates`);
 
     const insertedUsers = await User.insertMany(usersData);
