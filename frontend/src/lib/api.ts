@@ -228,7 +228,7 @@ export interface PurchaseRequest {
     _id: string;
     nickname: string;
   };
-  status: 'pending' | 'accepted' | 'rejected' | 'completed';
+  status: 'pending' | 'rejected' | 'completed' | 'cancelled';
   createdAt: string;
 }
 
@@ -291,9 +291,9 @@ export const MessageAPI = {
 };
 
 export const PurchaseRequestAPI = {
-  accept: (id: string) =>
+  complete: (id: string) =>
     patch<{ ok: true; purchaseRequest: PurchaseRequest; message: string }>(
-      `/api/purchase-requests/${id}/accept`
+      `/api/purchase-requests/${id}/complete`
     ),
 
   reject: (id: string) =>

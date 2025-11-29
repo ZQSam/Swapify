@@ -7,7 +7,7 @@ const purchaseRequestSchema = new mongoose.Schema(
     seller: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true, index: true },
     status: {
       type: String,
-      enum: ['pending', 'accepted', 'rejected', 'completed', 'cancelled'],
+      enum: ['pending', 'rejected', 'completed', 'cancelled'],
       default: 'pending'
     },
     message: String,

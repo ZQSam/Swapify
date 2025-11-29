@@ -1,10 +1,11 @@
 import { PurchaseRequest } from "../models/PurchaseRequest.model.js";
+import { Book } from "../models/Book.model.js";
 
-// Accept a purchase request (seller only)
-export const acceptPurchaseRequest = async (req, res) => {
+// Complete a purchase request (seller only)
+export const completePurchaseRequest = async (req, res) => {
   try {
     const { id } = req.params;
-    const pr = await PurchaseRequest.findById(id);
+    const pr = await PurchaseRequest.findById(id).populate("book");
 
     if (!pr) {
       return res.status(404).json({ error: "Purchase request not found" });
@@ -20,8 +21,15 @@ export const acceptPurchaseRequest = async (req, res) => {
       return res.status(400).json({ error: "Can only accept pending requests" });
     }
 
-    pr.status = "accepted";
+    pr.status = "completed";
     await pr.save();
+
+    await Book.findByIdAndUpdate(pr.book._id, { status: "closed" });
+
+    await PurchaseRequest.updateMany(
+      { book: pr.book._id, status: "pending", _id: { $ne: id } },
+      { status: "rejected" }
+    );
 
     const populatedPr = await PurchaseRequest.findById(id)
       .populate("buyer", "nickname email")
@@ -31,11 +39,11 @@ export const acceptPurchaseRequest = async (req, res) => {
     res.json({
       ok: true,
       purchaseRequest: populatedPr,
-      message: "Purchase request accepted"
+      message: "Purchase request completed and book closed"
     });
   } catch (error) {
-    console.error("Accept purchase request error:", error);
-    res.status(500).json({ error: "Failed to accept purchase request" });
+    console.error("Complete purchase request error:", error);
+    res.status(500).json({ error: "Failed to complete purchase request" });
   }
 };
 

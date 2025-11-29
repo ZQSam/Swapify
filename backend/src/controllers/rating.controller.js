@@ -17,8 +17,8 @@ export const createRating = async (req, res) => {
     return res.status(404).json({ error: "Request not found" });
   }
 
-  if (request.status !== 'completed' && request.status !== 'accepted') {
-    return res.status(400).json({ error: "Can only rate accepted or completed transactions" });
+  if (request.status !== 'completed') {
+    return res.status(400).json({ error: "Can only rate completed transactions" });
   }
 
   const isSeller = request.seller.toString() === req.user._id.toString();
@@ -95,8 +95,8 @@ export const getRatableRequests = async (req, res) => {
 
   const requests = await PurchaseRequest.find({
     $or: [
-      { buyer: req.user._id, seller: targetUserId, status: { $in: ['accepted', 'completed'] } },
-      { seller: req.user._id, buyer: targetUserId, status: { $in: ['accepted', 'completed'] } }
+      { buyer: req.user._id, seller: targetUserId, status: 'completed' },
+      { seller: req.user._id, buyer: targetUserId, status: 'completed' }
     ]
   }).populate('book', 'title');
 

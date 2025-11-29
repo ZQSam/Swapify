@@ -23,32 +23,32 @@ export function PurchaseRequestCard({ message, isOwn, onStatusChange }: Purchase
 
   const statusColors = {
     pending: '#f59e0b',
-    accepted: '#10b981',
     rejected: '#ef4444',
-    completed: '#6b7280',
+    completed: '#10b981',
+    cancelled: '#6b7280',
   };
 
   const handleBookClick = () => {
     navigate(`/books/${pr.book._id}`);
   };
 
-  const handleAccept = async () => {
+  const handleComplete = async () => {
     if (processing) return;
 
     const confirmed = window.confirm(
-      `Accept this purchase request for "${pr.book.title}"?\n\nBuyer: ${pr.buyer.nickname}`
+      `Mark this purchase as complete for "${pr.book.title}"?\n\nThis will close the listing and reject all other pending requests.\n\nBuyer: ${pr.buyer.nickname}`
     );
 
     if (!confirmed) return;
 
     setProcessing(true);
     try {
-      await PurchaseRequestAPI.accept(pr._id);
-      alert('Purchase request accepted successfully!');
+      await PurchaseRequestAPI.complete(pr._id);
+      alert('Purchase completed! The listing has been closed.');
       onStatusChange?.();
     } catch (error: any) {
-      console.error('Failed to accept request:', error);
-      alert(error.message || 'Failed to accept purchase request');
+      console.error('Failed to complete request:', error);
+      alert(error.message || 'Failed to complete purchase request');
     } finally {
       setProcessing(false);
     }
@@ -261,7 +261,7 @@ export function PurchaseRequestCard({ message, isOwn, onStatusChange }: Purchase
                   {processing ? 'Cancelling...' : 'Cancel'}
                 </button>
               ) : (
-                // Seller (receiver) sees Accept and Reject buttons
+                // Seller (receiver) sees Mark as Complete and Reject buttons
                 <>
                   <button
                     onClick={handleReject}
@@ -289,7 +289,7 @@ export function PurchaseRequestCard({ message, isOwn, onStatusChange }: Purchase
                     Reject
                   </button>
                   <button
-                    onClick={handleAccept}
+                    onClick={handleComplete}
                     disabled={processing}
                     style={{
                       flex: 1,
@@ -305,7 +305,7 @@ export function PurchaseRequestCard({ message, isOwn, onStatusChange }: Purchase
                       transition: 'opacity 0.2s'
                     }}
                   >
-                    {processing ? 'Accepting...' : 'Accept'}
+                    {processing ? 'Completing...' : 'Mark as Complete'}
                   </button>
                 </>
               )}

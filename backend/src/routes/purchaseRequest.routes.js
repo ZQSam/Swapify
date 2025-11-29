@@ -6,7 +6,7 @@ const router = Router();
 
 router.use(requireAuth);
 
-router.patch("/:id/accept", purchaseRequestController.acceptPurchaseRequest);
+router.patch("/:id/complete", purchaseRequestController.completePurchaseRequest);
 router.patch("/:id/reject", purchaseRequestController.rejectPurchaseRequest);
 router.patch("/:id/cancel", purchaseRequestController.cancelPurchaseRequest);
 

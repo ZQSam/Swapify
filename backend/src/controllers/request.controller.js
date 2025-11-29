@@ -26,7 +26,7 @@ export const createRequest = async (req, res) => {
   const existing = await PurchaseRequest.findOne({
     book: bookId,
     buyer: req.user._id,
-    status: { $in: ['pending', 'accepted'] }
+    status: 'pending'
   });
 
   if (existing) {
@@ -65,7 +65,7 @@ export const getSentRequests = async (req, res) => {
   res.json({ requests });
 };
 
-export const acceptRequest = async (req, res) => {
+export const completeRequest = async (req, res) => {
   const request = await PurchaseRequest.findById(req.params.id).populate('book');
 
   if (!request) {
@@ -80,10 +80,15 @@ export const acceptRequest = async (req, res) => {
     return res.status(400).json({ error: "Request already processed" });
   }
 
-  request.status = 'accepted';
+  request.status = 'completed';
   await request.save();
 
-  await Book.findByIdAndUpdate(request.book._id, { status: 'pending' });
+  await Book.findByIdAndUpdate(request.book._id, { status: 'closed' });
+
+  await PurchaseRequest.updateMany(
+    { book: request.book._id, status: 'pending', _id: { $ne: req.params.id } },
+    { status: 'rejected' }
+  );
 
   res.json({ request });
 };
@@ -105,32 +110,6 @@ export const rejectRequest = async (req, res) => {
 
   request.status = 'rejected';
   await request.save();
-
-  res.json({ request });
-};
-
-export const completeRequest = async (req, res) => {
-  const request = await PurchaseRequest.findById(req.params.id).populate('book');
-
-  if (!request) {
-    return res.status(404).json({ error: "Request not found" });
-  }
-
-  const isSeller = request.seller.toString() === req.user._id.toString();
-  const isBuyer = request.buyer.toString() === req.user._id.toString();
-
-  if (!isSeller && !isBuyer) {
-    return res.status(403).json({ error: "Not authorized" });
-  }
-
-  if (request.status !== 'accepted') {
-    return res.status(400).json({ error: "Request must be accepted first" });
-  }
-
-  request.status = 'completed';
-  await request.save();
-
-  await Book.findByIdAndUpdate(request.book._id, { status: 'sold' });
 
   res.json({ request });
 };
