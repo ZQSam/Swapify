@@ -9,12 +9,14 @@ import { User } from "../models/User.model.js";
 import { Book } from "../models/Book.model.js";
 import { Message } from "../models/Message.model.js";
 import { PurchaseRequest } from "../models/PurchaseRequest.model.js";
+import { Rating } from "../models/Rating.model.js";
 import { coursesData } from "./courses.seed.js";
 import { bookTemplatesData } from "./bookTemplates.seed.js";
 import { usersData } from "./users.seed.js";
 import { booksData } from "./books.seed.js";
 import { messagesData } from "./messages.seed.js";
 import { purchaseRequestsData } from "./purchaseRequests.seed.js";
+import { ratingsData } from "./ratings.seed.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -30,6 +32,7 @@ async function seed() {
     await Book.deleteMany({});
     await PurchaseRequest.deleteMany({});
     await Message.deleteMany({});
+    await Rating.deleteMany({});
     console.log("Cleared existing data");
 
     await Course.insertMany(coursesData);
@@ -158,6 +161,55 @@ async function seed() {
     if (validMessages.length > 0) {
       await Message.insertMany(validMessages);
       console.log(`Inserted ${validMessages.length} messages`);
+    }
+
+    const ratingsWithIds = await Promise.all(
+      ratingsData.map(async (rating) => {
+        const rater = await User.findOne({ email: rating.raterEmail });
+        const ratee = await User.findOne({ email: rating.rateeEmail });
+
+        if (!rater || !ratee) {
+          console.warn(`Skipping rating: rater or ratee not found`);
+          return null;
+        }
+
+        if (rating.requestIndex === undefined || !insertedPurchaseRequests[rating.requestIndex]) {
+          console.warn(`Skipping rating: purchase request not found`);
+          return null;
+        }
+
+        return {
+          rater: rater._id,
+          ratee: ratee._id,
+          request: insertedPurchaseRequests[rating.requestIndex]._id,
+          score: rating.score,
+          comment: rating.comment,
+        };
+      })
+    );
+
+    const validRatings = ratingsWithIds.filter((r) => r !== null);
+    if (validRatings.length > 0) {
+      await Rating.insertMany(validRatings);
+      console.log(`Inserted ${validRatings.length} ratings`);
+
+      const userRatings = {};
+      for (const rating of validRatings) {
+        const rateeId = rating.ratee.toString();
+        if (!userRatings[rateeId]) {
+          userRatings[rateeId] = [];
+        }
+        userRatings[rateeId].push(rating.score);
+      }
+
+      for (const [userId, scores] of Object.entries(userRatings)) {
+        const avgRating = scores.reduce((sum, score) => sum + score, 0) / scores.length;
+        await User.findByIdAndUpdate(userId, {
+          averageRating: avgRating,
+          ratingCount: scores.length,
+        });
+      }
+      console.log(`Updated user average ratings`);
     }
 
     console.log("Seed completed successfully");
