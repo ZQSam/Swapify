@@ -28,7 +28,7 @@ export default function SearchBar({ onSearch, ...props }: SearchBarProps) {
         type="text"
         style={{
           width: '100%',
-          height: '48px',
+          height: '40px',
           padding: '0 16px 0 48px',
           border: '1px solid var(--color-gray-100)',
           borderRadius: '8px',

@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { BookAPI } from '../lib/api';
 import type { Book } from '../lib/api';
-import { BookCard, LoadingSpinner } from '../components/ui';
+import { BookCard, LoadingSpinner, Input } from '../components/ui';
 import { Search } from 'lucide-react';
 import Slider from 'rc-slider';
 import 'rc-slider/assets/index.css';
@@ -155,29 +155,19 @@ export default function BooksPage() {
       <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '32px 24px' }}>
         
         <div style={{ marginBottom: '24px', display: 'flex', gap: '12px' }}>
-          <input
+          <Input
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
             placeholder="Search by course code, course name, book title, or ISBN..."
-            style={{
-              flex: 1,
-              height: '48px',
-              padding: '0 16px',
-              fontSize: '16px',
-              border: '1px solid var(--color-gray-100)',
-              borderRadius: '8px',
-              outline: 'none',
-            }}
-            onFocus={(e) => e.currentTarget.style.borderColor = 'var(--color-primary)'}
-            onBlur={(e) => e.currentTarget.style.borderColor = 'var(--color-gray-100)'}
+            style={{ flex: 1 }}
           />
           <button
             onClick={handleSearch}
             style={{
               minWidth: '120px',
-              height: '48px',
+              height: '40px',
               padding: '0 24px',
               backgroundColor: 'var(--color-primary)',
               color: 'white',

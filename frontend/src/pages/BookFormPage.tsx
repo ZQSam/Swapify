@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { BookAPI, BookTemplateAPI, CourseAPI } from '../lib/api';
 import type { Book, BookTemplateSuggestion, Course } from '../lib/api';
-import { LoadingSpinner, Button, Input } from '../components/ui';
+import { LoadingSpinner, Button, Input, Select } from '../components/ui';
 import { ArrowLeft, Save, Search } from 'lucide-react';
 
 export default function BookFormPage() {
@@ -372,7 +372,7 @@ export default function BookFormPage() {
                       placeholder="Search by Course Code, Book Name or Course Name"
                       style={{
                         width: '100%',
-                        height: '48px',
+                        height: '40px',
                         padding: '0 48px 0 16px',
                         fontSize: '16px',
                         border: '1px solid var(--color-gray-100)',
@@ -688,7 +688,7 @@ export default function BookFormPage() {
                   }}>
                     Term <span style={{ color: 'var(--color-error)' }}>*</span>
                   </label>
-                  <select
+                  <Select
                     value={formData.term}
                     onChange={(e) => {
                       handleChange('term', e.target.value);
@@ -697,15 +697,7 @@ export default function BookFormPage() {
                     }}
                     disabled={loadingTerms}
                     style={{
-                      width: '100%',
-                      height: '48px',
-                      padding: '0 16px',
-                      fontSize: '16px',
-                      border: '1px solid var(--color-gray-100)',
-                      borderRadius: '8px',
-                      outline: 'none',
                       backgroundColor: loadingTerms ? 'var(--color-gray-50)' : 'white',
-                      cursor: loadingTerms ? 'not-allowed' : 'pointer',
                     }}
                     required
                   >
@@ -715,7 +707,7 @@ export default function BookFormPage() {
                     {availableTerms.map(term => (
                       <option key={term} value={term}>{term}</option>
                     ))}
-                  </select>
+                  </Select>
                 </div>
 
                 <div>
@@ -728,7 +720,7 @@ export default function BookFormPage() {
                   }}>
                     Course <span style={{ color: 'var(--color-error)' }}>*</span>
                   </label>
-                  <select
+                  <Select
                     value={formData.courseCode}
                     onChange={(e) => {
                       const selectedCourse = courses.find(c => c.code === e.target.value);
@@ -742,15 +734,7 @@ export default function BookFormPage() {
                     }}
                     disabled={!formData.term || loadingCourses}
                     style={{
-                      width: '100%',
-                      height: '48px',
-                      padding: '0 16px',
-                      fontSize: '16px',
-                      border: '1px solid var(--color-gray-100)',
-                      borderRadius: '8px',
-                      outline: 'none',
                       backgroundColor: !formData.term || loadingCourses ? 'var(--color-gray-50)' : 'white',
-                      cursor: !formData.term || loadingCourses ? 'not-allowed' : 'pointer',
                     }}
                     required
                   >
@@ -762,7 +746,7 @@ export default function BookFormPage() {
                         {course.code} - {course.name}
                       </option>
                     ))}
-                  </select>
+                  </Select>
                 </div>
               </div>
 
@@ -799,23 +783,13 @@ export default function BookFormPage() {
                   }}>
                     Condition <span style={{ color: 'var(--color-error)' }}>*</span>
                   </label>
-                  <select
+                  <Select
                     value={formData.condition}
                     onChange={(e) => handleChange('condition', e.target.value as 'new' | 'used')}
-                    style={{
-                      width: '100%',
-                      height: '48px',
-                      padding: '0 16px',
-                      fontSize: '16px',
-                      border: '1px solid var(--color-gray-100)',
-                      borderRadius: '8px',
-                      outline: 'none',
-                      backgroundColor: 'white',
-                    }}
                   >
                     <option value="new">New</option>
                     <option value="used">Used</option>
-                  </select>
+                  </Select>
                 </div>
               </div>
 
