@@ -8,6 +8,8 @@ const userSchema = new mongoose.Schema(
     passwordHash: { type: String, required: true },
     avatar: String,
     bio: String,
+    averageRating: { type: Number, default: 0 },
+    ratingCount: { type: Number, default: 0 },
   },
   { timestamps: true }
 );

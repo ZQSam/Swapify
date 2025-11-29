@@ -10,5 +10,6 @@ router.put("/me", requireAuth, userController.updateMe);
 router.put("/me/password", requireAuth, userController.changePassword);
 router.get("/:id", optionalAuth, userController.getProfile);
 router.get("/:id/ratings", optionalAuth, ratingController.getUserRatings);
+router.get("/:id/ratable-requests", requireAuth, ratingController.getRatableRequests);
 
 export default router;
