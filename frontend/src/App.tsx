@@ -10,6 +10,7 @@ import MyBooksPage from "./pages/MyBooksPage";
 import BookFormPage from "./pages/BookFormPage";
 import ComponentsDemo from "./pages/ComponentsDemo";
 import { MessagesPage } from "./pages/MessagesPage";
+import ProfilePage from "./pages/ProfilePage";
 import SiteHeader from "./components/SiteHeader";
 import SiteFooter from "./components/SiteFooter";
 import ProtectedRoute from "./components/ProtectedRoute";
@@ -72,16 +73,7 @@ export default function App() {
             }
           />
 
-          <Route
-            path="/profile"
-            element={
-              <ProtectedRoute>
-                <div style={{ paddingTop: 'var(--topbar-h)', padding: '32px 24px' }}>
-                  Profile page coming soon...
-                </div>
-              </ProtectedRoute>
-            }
-          />
+          <Route path="/users/:id" element={<ProfilePage />} />
 
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
