@@ -86,7 +86,7 @@ export default function BookDetailPage() {
       background: 'var(--color-gray-50)',
     }}>
       <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '32px 24px' }}>
-        {/* Back Button */}
+        
         <button
           onClick={() => navigate(-1)}
           style={{
@@ -107,13 +107,13 @@ export default function BookDetailPage() {
           Back to Books
         </button>
 
-        {/* Main Content */}
+        
         <div style={{
           display: 'grid',
           gridTemplateColumns: '400px 1fr',
           gap: '32px',
         }}>
-          {/* Left: Book Image */}
+          
           <div>
             <div style={{
               width: '100%',
@@ -132,19 +132,21 @@ export default function BookDetailPage() {
             </div>
           </div>
 
-          {/* Right: Book Details */}
+          
           <div style={{
             backgroundColor: 'white',
             border: '1px solid var(--color-gray-100)',
             borderRadius: '12px',
             padding: '32px',
           }}>
-            {/* Status Badge */}
-            <div style={{ marginBottom: '16px' }}>
-              <Badge variant={book.status}>{statusLabels[book.status]}</Badge>
-            </div>
+            
+            {book.status === 'closed' && (
+              <div style={{ marginBottom: '16px' }}>
+                <Badge variant={book.status}>{statusLabels[book.status]}</Badge>
+              </div>
+            )}
 
-            {/* Course Code */}
+            
             <div style={{
               fontSize: '14px',
               color: 'var(--color-primary)',
@@ -154,7 +156,7 @@ export default function BookDetailPage() {
               {book.courseCode}
             </div>
 
-            {/* Title */}
+            
             <h1 style={{
               fontSize: '32px',
               fontWeight: 700,
@@ -164,7 +166,7 @@ export default function BookDetailPage() {
               {book.title}
             </h1>
 
-            {/* Author */}
+            
             {book.author && (
               <p style={{
                 fontSize: '18px',
@@ -175,7 +177,7 @@ export default function BookDetailPage() {
               </p>
             )}
 
-            {/* Price */}
+            
             <div style={{
               fontSize: '40px',
               fontWeight: 700,
@@ -185,7 +187,7 @@ export default function BookDetailPage() {
               ${book.price.toFixed(2)}
             </div>
 
-            {/* Book Info */}
+            
             <div style={{
               display: 'grid',
               gridTemplateColumns: '1fr 1fr',
@@ -213,9 +215,31 @@ export default function BookDetailPage() {
                   </div>
                 </div>
               )}
+
+              {book.edition && (
+                <div>
+                  <div style={{ fontSize: '12px', color: 'var(--color-gray-300)', marginBottom: '4px' }}>
+                    Edition
+                  </div>
+                  <div style={{ fontSize: '16px', fontWeight: 600, color: 'var(--color-gray-900)' }}>
+                    {book.edition}
+                  </div>
+                </div>
+              )}
+
+              {book.year && (
+                <div>
+                  <div style={{ fontSize: '12px', color: 'var(--color-gray-300)', marginBottom: '4px' }}>
+                    Year
+                  </div>
+                  <div style={{ fontSize: '16px', fontWeight: 600, color: 'var(--color-gray-900)' }}>
+                    {book.year}
+                  </div>
+                </div>
+              )}
             </div>
 
-            {/* Description */}
+            
             {book.description && (
               <div style={{ marginBottom: '24px' }}>
                 <h3 style={{ fontSize: '18px', fontWeight: 700, marginBottom: '12px' }}>
@@ -227,7 +251,7 @@ export default function BookDetailPage() {
               </div>
             )}
 
-            {/* Seller Info */}
+            
             {book.seller && (
               <div style={{
                 padding: '20px',
@@ -240,7 +264,16 @@ export default function BookDetailPage() {
                 </h3>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                   <div>
-                    <div style={{ fontSize: '18px', fontWeight: 600, marginBottom: '4px' }}>
+                    <div
+                      onClick={() => navigate(`/users/${book.seller._id}`)}
+                      style={{
+                        fontSize: '18px',
+                        fontWeight: 600,
+                        marginBottom: '4px',
+                        cursor: 'pointer',
+                        color: 'var(--color-primary)',
+                      }}
+                    >
                       {book.seller.nickname}
                     </div>
                     <RatingStars
@@ -253,7 +286,7 @@ export default function BookDetailPage() {
               </div>
             )}
 
-            {/* Contact Button */}
+            
             {!isOwnBook && book.status === 'available' && (
               <Button
                 variant="primary"

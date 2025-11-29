@@ -55,6 +55,8 @@ export interface Book {
   title: string;
   author?: string;
   isbn?: string;
+  edition?: string;
+  year?: number;
   courseCode: string;
   courseName?: string;
   term?: string;
@@ -126,6 +128,8 @@ export const BookAPI = {
     title: string;
     author?: string;
     isbn?: string;
+    edition?: string;
+    year?: number;
     courseCode: string;
     courseName?: string;
     term?: string;
@@ -140,6 +144,8 @@ export const BookAPI = {
     title: string;
     author?: string;
     isbn?: string;
+    edition?: string;
+    year?: number;
     courseCode: string;
     courseName?: string;
     term?: string;
@@ -299,4 +305,56 @@ export const PurchaseRequestAPI = {
     patch<{ ok: true; purchaseRequest: PurchaseRequest; message: string }>(
       `/api/purchase-requests/${id}/cancel`
     ),
+};
+
+export interface UserProfile {
+  _id: string;
+  email: string;
+  nickname: string;
+  uiucVerified: boolean;
+  averageRating: number;
+  ratingCount: number;
+  createdAt: string;
+}
+
+export interface Rating {
+  _id: string;
+  score: number;
+  comment?: string;
+  rater: {
+    _id: string;
+    nickname: string;
+  };
+  createdAt: string;
+}
+
+export interface RatableRequest {
+  _id: string;
+  book: {
+    _id: string;
+    title: string;
+  };
+  status: string;
+  createdAt: string;
+  existingRating: {
+    _id: string;
+    score: number;
+    comment?: string;
+  } | null;
+}
+
+export const UserAPI = {
+  getProfile: (id: string) =>
+    get<{ user: UserProfile }>(`/api/users/${id}`),
+
+  getRatings: (id: string) =>
+    get<{ ratings: Rating[] }>(`/api/users/${id}/ratings`),
+
+  getRatableRequests: (id: string) =>
+    get<{ requests: RatableRequest[] }>(`/api/users/${id}/ratable-requests`),
+};
+
+export const RatingAPI = {
+  create: (requestId: string, score: number, comment?: string) =>
+    post<{ rating: Rating }>('/api/ratings', { requestId, score, comment }),
 };

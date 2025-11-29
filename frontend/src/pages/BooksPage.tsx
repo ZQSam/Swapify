@@ -153,7 +153,7 @@ export default function BooksPage() {
       background: 'var(--color-gray-50)',
     }}>
       <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '32px 24px' }}>
-        {/* Search Bar */}
+        
         <div style={{ marginBottom: '24px', display: 'flex', gap: '12px' }}>
           <input
             type="text"
@@ -200,9 +200,9 @@ export default function BooksPage() {
           </button>
         </div>
 
-        {/* Main Content: Filters + Books Grid */}
+        
         <div style={{ display: 'flex', gap: '24px' }}>
-          {/* Left: Filter Panel */}
+          
           <div style={{ width: '280px', flexShrink: 0 }}>
             <div style={{
               backgroundColor: 'white',
@@ -214,7 +214,7 @@ export default function BooksPage() {
               display: 'flex',
               flexDirection: 'column',
             }}>
-              {/* Price Filter */}
+              
               <div style={{ marginBottom: '32px', flexShrink: 0 }}>
                 <h3 style={{ fontSize: '18px', fontWeight: 700, marginBottom: '16px' }}>Price</h3>
                 <div style={{ padding: '0 8px', marginBottom: '12px' }}>
@@ -238,7 +238,7 @@ export default function BooksPage() {
                 </div>
               </div>
 
-              {/* Term Filter */}
+              
               {filterOptions.terms.length > 0 && (
                 <div style={{ marginBottom: '32px', flexShrink: 0 }}>
                   <h3 style={{ fontSize: '18px', fontWeight: 700, marginBottom: '16px' }}>Term</h3>
@@ -256,7 +256,7 @@ export default function BooksPage() {
                 </div>
               )}
 
-              {/* Course Filter */}
+              
               {filterOptions.courses.length > 0 && (
                 <div style={{ marginBottom: '32px', minHeight: 0 }}>
                   <h3 style={{ fontSize: '18px', fontWeight: 700, marginBottom: '16px' }}>Course</h3>
@@ -276,7 +276,7 @@ export default function BooksPage() {
                 </div>
               )}
 
-              {/* Book Filter */}
+              
               {filterOptions.bookTitles.length > 0 && (
                 <div style={{ minHeight: 0 }}>
                   <h3 style={{ fontSize: '18px', fontWeight: 700, marginBottom: '16px' }}>Book</h3>
@@ -300,7 +300,7 @@ export default function BooksPage() {
             </div>
           </div>
 
-          {/* Right: Books Grid */}
+          
           <div style={{ flex: 1 }}>
             {filteredBooks.length === 0 ? (
               <div style={{ textAlign: 'center', padding: '64px 0', color: 'var(--color-gray-300)' }}>
@@ -323,6 +323,8 @@ export default function BooksPage() {
                         id={book._id}
                         title={book.title}
                         author={book.author}
+                        edition={book.edition}
+                        year={book.year}
                         courseCode={book.courseCode}
                         price={book.price}
                         condition={book.condition}

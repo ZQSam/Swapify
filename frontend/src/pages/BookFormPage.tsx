@@ -18,6 +18,8 @@ export default function BookFormPage() {
     title: '',
     author: '',
     isbn: '',
+    edition: '',
+    year: '',
     courseCode: '',
     courseName: '',
     term: '',
@@ -112,6 +114,8 @@ export default function BookFormPage() {
         title: book.title,
         author: book.author || '',
         isbn: book.isbn || '',
+        edition: book.edition || '',
+        year: book.year ? book.year.toString() : '',
         courseCode: book.courseCode,
         courseName: book.courseName || '',
         term: book.term || '',
@@ -153,6 +157,8 @@ export default function BookFormPage() {
         title: formData.title,
         author: formData.author || undefined,
         isbn: formData.isbn || undefined,
+        edition: formData.edition || undefined,
+        year: formData.year ? parseInt(formData.year, 10) : undefined,
         courseCode: formData.courseCode,
         courseName: formData.courseName || undefined,
         term: formData.term || undefined,
@@ -244,6 +250,8 @@ export default function BookFormPage() {
       title: suggestion.title,
       author: suggestion.author || '',
       isbn: suggestion.isbn || '',
+      edition: suggestion.edition || '',
+      year: suggestion.year ? suggestion.year.toString() : '',
       courseCode: suggestion.courseInfo?.code || '',
       courseName: suggestion.courseInfo?.name || '',
       term: suggestion.courseInfo?.term || '',
@@ -284,7 +292,7 @@ export default function BookFormPage() {
       background: 'var(--color-gray-50)',
     }}>
       <div style={{ maxWidth: '800px', margin: '0 auto', padding: '32px 24px' }}>
-        {/* Back Button */}
+        
         <button
           onClick={() => navigate('/my-books')}
           style={{
@@ -305,7 +313,7 @@ export default function BookFormPage() {
           Back to My Listings
         </button>
 
-        {/* Form */}
+        
         <div style={{
           backgroundColor: 'white',
           border: '1px solid var(--color-gray-100)',
@@ -337,7 +345,7 @@ export default function BookFormPage() {
 
           <form onSubmit={handleSubmit}>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-              {/* Book Template Search */}
+              
               <div style={{ marginBottom: '8px' }}>
                 <h3 style={{
                   fontSize: '18px',
@@ -391,7 +399,7 @@ export default function BookFormPage() {
                     />
                   </div>
 
-                  {/* Suggestions Dropdown */}
+                  
                   {showSuggestions && templateSuggestions.length > 0 && (
                     <div style={{
                       position: 'absolute',
@@ -476,7 +484,7 @@ export default function BookFormPage() {
                 </div>
               </div>
 
-              {/* OR Divider */}
+              
               <div style={{
                 display: 'flex',
                 alignItems: 'center',
@@ -490,7 +498,7 @@ export default function BookFormPage() {
                 <div style={{ flex: 1, height: '1px', background: 'var(--color-gray-100)' }} />
               </div>
 
-              {/* Book Cover Upload */}
+              
               <div>
                 <label style={{
                   display: 'block',
@@ -506,7 +514,7 @@ export default function BookFormPage() {
                   gap: '16px',
                   alignItems: 'flex-start',
                 }}>
-                  {/* Image Preview */}
+                  
                   <div style={{
                     width: '200px',
                     height: '280px',
@@ -525,7 +533,7 @@ export default function BookFormPage() {
                     )}
                   </div>
 
-                  {/* Upload Controls */}
+                  
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                     <label style={{
                       padding: '12px 24px',
@@ -573,7 +581,7 @@ export default function BookFormPage() {
                 </div>
               </div>
 
-              {/* ISBN */}
+              
               <div>
                 <label style={{
                   display: 'block',
@@ -591,7 +599,7 @@ export default function BookFormPage() {
                 />
               </div>
 
-              {/* Title */}
+              
               <div>
                 <label style={{
                   display: 'block',
@@ -610,7 +618,7 @@ export default function BookFormPage() {
                 />
               </div>
 
-              {/* Author */}
+              
               <div>
                 <label style={{
                   display: 'block',
@@ -628,7 +636,47 @@ export default function BookFormPage() {
                 />
               </div>
 
-              {/* Term and Course */}
+              
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                <div>
+                  <label style={{
+                    display: 'block',
+                    fontSize: '14px',
+                    fontWeight: 600,
+                    color: 'var(--color-gray-700)',
+                    marginBottom: '8px',
+                  }}>
+                    Edition
+                  </label>
+                  <Input
+                    value={formData.edition}
+                    onChange={(e) => handleChange('edition', e.target.value)}
+                    placeholder="e.g., 3rd"
+                  />
+                </div>
+
+                <div>
+                  <label style={{
+                    display: 'block',
+                    fontSize: '14px',
+                    fontWeight: 600,
+                    color: 'var(--color-gray-700)',
+                    marginBottom: '8px',
+                  }}>
+                    Year
+                  </label>
+                  <Input
+                    type="number"
+                    min="1900"
+                    max="2100"
+                    value={formData.year}
+                    onChange={(e) => handleChange('year', e.target.value)}
+                    placeholder="e.g., 2024"
+                  />
+                </div>
+              </div>
+
+              
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
                 <div>
                   <label style={{
@@ -718,7 +766,7 @@ export default function BookFormPage() {
                 </div>
               </div>
 
-              {/* Price and Condition */}
+              
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
                 <div>
                   <label style={{
@@ -771,7 +819,7 @@ export default function BookFormPage() {
                 </div>
               </div>
 
-              {/* Description */}
+              
               <div>
                 <label style={{
                   display: 'block',
@@ -800,7 +848,7 @@ export default function BookFormPage() {
                 />
               </div>
 
-              {/* Submit Button */}
+              
               <Button
                 type="submit"
                 variant="primary"

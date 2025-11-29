@@ -8,6 +8,8 @@ export interface BookCardProps {
   image?: string;
   title: string;
   author?: string;
+  edition?: string;
+  year?: number;
   courseCode: string;
   price: number;
   condition: string;
@@ -24,6 +26,8 @@ export default function BookCard({
   image,
   title,
   author,
+  edition,
+  year,
   courseCode,
   price,
   condition,
@@ -41,7 +45,7 @@ export default function BookCard({
   return (
     <Card hover onClick={() => navigate(`/books/${id}`)}>
       <div style={{ padding: '16px' }}>
-        {/* Book Image */}
+        
         <div
           style={{
             width: '100%',
@@ -60,12 +64,14 @@ export default function BookCard({
           {!image && 'No Image'}
         </div>
 
-        {/* Status Badge */}
-        <div style={{ marginBottom: '8px' }}>
-          <Badge variant={status}>{statusLabels[status]}</Badge>
-        </div>
+        
+        {status === 'closed' && (
+          <div style={{ marginBottom: '8px' }}>
+            <Badge variant={status}>{statusLabels[status]}</Badge>
+          </div>
+        )}
 
-        {/* Course Code */}
+        
         <div
           style={{
             fontSize: '12px',
@@ -77,7 +83,7 @@ export default function BookCard({
           {courseCode}
         </div>
 
-        {/* Book Title */}
+        
         <h3
           style={{
             fontSize: '16px',
@@ -92,7 +98,7 @@ export default function BookCard({
           {title}
         </h3>
 
-        {/* Author */}
+        
         {author && (
           <p
             style={{
@@ -108,7 +114,22 @@ export default function BookCard({
           </p>
         )}
 
-        {/* Condition */}
+        
+        {(edition || year) && (
+          <p
+            style={{
+              fontSize: '12px',
+              color: 'var(--color-gray-300)',
+              margin: '0 0 8px 0',
+            }}
+          >
+            {edition && `${edition} Edition`}
+            {edition && year && ' • '}
+            {year}
+          </p>
+        )}
+
+        
         <p
           style={{
             fontSize: '14px',
@@ -119,7 +140,7 @@ export default function BookCard({
           Condition: {condition}
         </p>
 
-        {/* Price */}
+        
         <div
           style={{
             fontSize: '24px',
@@ -131,7 +152,7 @@ export default function BookCard({
           ${price.toFixed(2)}
         </div>
 
-        {/* Seller Info */}
+        
         {seller && (
           <div
             style={{
