@@ -28,12 +28,10 @@ export const getCoursesByTerm = async (req, res) => {
   }
 
   try {
-    // Find all book templates that have courses for this term
     const templates = await BookTemplate.find({
       "commonCourses.term": term
     });
 
-    // Extract and deduplicate courses
     const coursesMap = new Map();
 
     templates.forEach(template => {

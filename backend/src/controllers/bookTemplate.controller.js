@@ -41,7 +41,6 @@ export const getAvailableTerms = async (req, res) => {
   try {
     const templates = await BookTemplate.find({});
 
-    // Extract and deduplicate terms
     const termsSet = new Set();
     templates.forEach(template => {
       template.commonCourses.forEach(course => {

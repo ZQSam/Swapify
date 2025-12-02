@@ -4,7 +4,7 @@ import { UserAPI, RatingAPI } from '../lib/api';
 import type { UserProfile, Rating } from '../lib/api';
 import { LoadingSpinner, RatingStars, Button } from '../components/ui';
 import { useAuth } from '../contexts/AuthContext';
-import { ArrowLeft, LogOut, Star } from 'lucide-react';
+import { ArrowLeft, LogOut, Star, MessageSquare } from 'lucide-react';
 
 function RatingForm({
   userId,
@@ -253,51 +253,71 @@ export default function ProfilePage() {
           padding: '32px',
           marginBottom: '24px',
         }}>
-          <div style={{ marginBottom: '24px' }}>
-            <h1 style={{
-              fontSize: '32px',
-              fontWeight: 700,
-              color: 'var(--color-gray-900)',
-              margin: '0 0 8px 0',
-            }}>
-              {profile.nickname}
-            </h1>
-            {isOwnProfile && (
-              <p style={{
-                fontSize: '16px',
-                color: 'var(--color-gray-300)',
+          <div style={{
+            display: 'flex',
+            alignItems: 'flex-start',
+            justifyContent: 'space-between',
+            marginBottom: '24px',
+          }}>
+            <div>
+              <h1 style={{
+                fontSize: '32px',
+                fontWeight: 700,
+                color: 'var(--color-gray-900)',
                 margin: '0 0 8px 0',
               }}>
-                {profile.email}
-              </p>
-            )}
-            <div style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px',
-              marginBottom: '16px',
-            }}>
-              {profile.uiucVerified && (
-                <span style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '4px',
-                  padding: '4px 12px',
-                  backgroundColor: '#E8F5E9',
-                  color: '#2E7D32',
-                  fontSize: '14px',
-                  fontWeight: 600,
-                  borderRadius: '12px',
+                {profile.nickname}
+              </h1>
+              {isOwnProfile && (
+                <p style={{
+                  fontSize: '16px',
+                  color: 'var(--color-gray-300)',
+                  margin: '0 0 8px 0',
                 }}>
-                  ✓ Illinois Email Verified
-                </span>
+                  {profile.email}
+                </p>
               )}
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                marginBottom: '16px',
+              }}>
+                {profile.uiucVerified && (
+                  <span style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '4px',
+                    padding: '4px 12px',
+                    backgroundColor: '#E8F5E9',
+                    color: '#2E7D32',
+                    fontSize: '14px',
+                    fontWeight: 600,
+                    borderRadius: '12px',
+                  }}>
+                    ✓ Illinois Email Verified
+                  </span>
+                )}
+              </div>
+              <RatingStars
+                rating={profile.averageRating || 0}
+                count={profile.ratingCount || 0}
+                size={20}
+              />
             </div>
-            <RatingStars
-              rating={profile.averageRating || 0}
-              count={profile.ratingCount || 0}
-              size={20}
-            />
+            {!isOwnProfile && (
+              <Button
+                variant="secondary"
+                onClick={() => navigate(`/messages/${id}`)}
+                style={{
+                  padding: '10px 20px',
+                  fontSize: '15px',
+                }}
+              >
+                <MessageSquare size={18} />
+                Message
+              </Button>
+            )}
           </div>
 
           <div style={{
