@@ -13,7 +13,7 @@ export interface BookCardProps {
   courseCode: string;
   price: number;
   condition: string;
-  status: 'available' | 'pending' | 'sold';
+  status: 'available' | 'closed';
   seller: {
     nickname: string;
     averageRating: number;
@@ -38,8 +38,7 @@ export default function BookCard({
 
   const statusLabels = {
     available: 'Available',
-    pending: 'Pending Sale',
-    sold: 'Sold',
+    closed: 'Closed',
   };
 
   return (

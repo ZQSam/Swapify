@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { BookAPI, BookTemplateAPI, CourseAPI } from '../lib/api';
-import type { Book, BookTemplateSuggestion, Course } from '../lib/api';
+import type { BookTemplateSuggestion, Course } from '../lib/api';
 import { LoadingSpinner, Button, Input, Select } from '../components/ui';
 import { ArrowLeft, Save, Search } from 'lucide-react';
 
@@ -36,7 +36,7 @@ export default function BookFormPage() {
   const [templateSuggestions, setTemplateSuggestions] = useState<BookTemplateSuggestion[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [searchingTemplates, setSearchingTemplates] = useState(false);
-  const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const searchTimeoutRef = useRef<number | null>(null);
   const suggestionsRef = useRef<HTMLDivElement>(null);
 
   // Course selection states
@@ -120,7 +120,7 @@ export default function BookFormPage() {
         courseName: book.courseName || '',
         term: book.term || '',
         price: book.price.toString(),
-        condition: book.condition,
+        condition: book.condition as 'new' | 'used',
         description: book.description || '',
         image: book.image || '',
       });

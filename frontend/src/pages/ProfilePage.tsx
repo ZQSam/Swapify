@@ -7,12 +7,10 @@ import { useAuth } from '../contexts/AuthContext';
 import { ArrowLeft, LogOut, Star, MessageSquare } from 'lucide-react';
 
 function RatingForm({
-  userId,
   existingRating,
   onSubmit,
   isSubmitting
 }: {
-  userId: string;
   existingRating: { score: number; comment?: string } | null;
   onSubmit: (score: number, comment: string) => void;
   isSubmitting: boolean;
@@ -384,7 +382,6 @@ export default function ProfilePage() {
                 : `Share your experience with ${profile?.nickname}`}
             </p>
             <RatingForm
-              userId={id}
               existingRating={existingRating}
               onSubmit={handleSubmitRating}
               isSubmitting={submittingRating}

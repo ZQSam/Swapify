@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { BookAPI } from '../lib/api';
+import { BookAPI, PurchaseRequestAPI, MessageAPI } from '../lib/api';
 import type { Book } from '../lib/api';
 import { LoadingSpinner, Badge, RatingStars, Button } from '../components/ui';
 import { useAuth } from '../contexts/AuthContext';
-import { MessageSquare, ArrowLeft, Edit2 } from 'lucide-react';
+import { MessageSquare, ArrowLeft, Edit2, ShoppingCart } from 'lucide-react';
 
 export default function BookDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -13,10 +13,20 @@ export default function BookDetailPage() {
   const [book, setBook] = useState<Book | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [hasExistingRequest, setHasExistingRequest] = useState(false);
+  const [sendingRequest, setSendingRequest] = useState(false);
 
   useEffect(() => {
     loadBook();
   }, [id]);
+
+  useEffect(() => {
+    if (book && isAuthenticated && !isOwnBook) {
+      checkExistingRequest();
+    }
+  }, [book, isAuthenticated]);
+
+  const isOwnBook = user?.id === book?.seller?._id;
 
   const loadBook = async () => {
     if (!id) return;
@@ -33,6 +43,17 @@ export default function BookDetailPage() {
     }
   };
 
+  const checkExistingRequest = async () => {
+    if (!id) return;
+
+    try {
+      const response = await PurchaseRequestAPI.checkExisting(id);
+      setHasExistingRequest(response.hasRequest);
+    } catch (err) {
+      console.error('Failed to check existing request:', err);
+    }
+  };
+
   const handleContactSeller = () => {
     if (!isAuthenticated) {
       navigate('/login');
@@ -40,6 +61,31 @@ export default function BookDetailPage() {
     }
     if (book?.seller?._id) {
       navigate(`/messages/${book.seller._id}`);
+    }
+  };
+
+  const handleSendPurchaseRequest = async () => {
+    if (!isAuthenticated) {
+      navigate('/login');
+      return;
+    }
+    if (!id || !book?.seller?._id) return;
+
+    try {
+      setSendingRequest(true);
+      // Create purchase request
+      const response = await PurchaseRequestAPI.create(id);
+      const purchaseRequestId = response.request._id;
+
+      // Send message with purchase request
+      await MessageAPI.sendPurchaseRequest(book.seller._id, purchaseRequestId);
+
+      setHasExistingRequest(true);
+      navigate(`/messages/${book.seller._id}`);
+    } catch (err) {
+      alert(err instanceof Error ? err.message : 'Failed to send purchase request');
+    } finally {
+      setSendingRequest(false);
     }
   };
 
@@ -72,7 +118,6 @@ export default function BookDetailPage() {
     );
   }
 
-  const isOwnBook = user?.id === book.seller?._id;
   const statusLabels = {
     available: 'Available',
     closed: 'Closed',
@@ -286,16 +331,27 @@ export default function BookDetailPage() {
               </div>
             )}
 
-            
+
             {!isOwnBook && book.status === 'available' && (
-              <Button
-                variant="primary"
-                onClick={handleContactSeller}
-                style={{ width: '100%', fontSize: '16px', padding: '16px' }}
-              >
-                <MessageSquare size={20} />
-                Contact Seller
-              </Button>
+              <div style={{ display: 'flex', gap: '12px' }}>
+                <Button
+                  variant="secondary"
+                  onClick={handleContactSeller}
+                  style={{ flex: 1, fontSize: '16px', padding: '16px' }}
+                >
+                  <MessageSquare size={20} />
+                  Contact Seller
+                </Button>
+                <Button
+                  variant="primary"
+                  onClick={handleSendPurchaseRequest}
+                  disabled={hasExistingRequest || sendingRequest}
+                  style={{ flex: 1, fontSize: '16px', padding: '16px' }}
+                >
+                  <ShoppingCart size={20} />
+                  {hasExistingRequest ? 'Request Sent' : sendingRequest ? 'Sending...' : 'Send Purchase Request'}
+                </Button>
+              </div>
             )}
 
             {isOwnBook && (

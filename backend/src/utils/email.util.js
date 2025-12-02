@@ -3,13 +3,11 @@ import { Resend } from "resend";
 
 const mailMode = (process.env.MAIL_MODE || "smtp").toLowerCase();
 
-// Resend client
 const resend =
   mailMode === "resend" && process.env.RESEND_API_KEY
     ? new Resend(process.env.RESEND_API_KEY)
     : null;
 
-// SMTP transporter
 let transporter = null;
 if (mailMode === "smtp") {
   const secure =
@@ -31,7 +29,6 @@ if (mailMode === "smtp") {
     .catch((err) => console.error("SMTP verify FAILED ❌", err));
 }
 
-// Unified email sender
 export async function sendEmail({ to, subject, text, html }) {
   if (resend) {
     const from = process.env.RESEND_FROM || "BookSwap <onboarding@resend.dev>";

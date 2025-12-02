@@ -14,7 +14,6 @@ const userSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-// Method to calculate and attach rating stats to user object
 userSchema.methods.getRatingStats = async function() {
   const Rating = mongoose.model('Rating');
   const result = await Rating.aggregate([
@@ -35,7 +34,6 @@ userSchema.methods.getRatingStats = async function() {
   return { averageRating: 0, ratingCount: 0 };
 };
 
-// Static method to get users with rating stats
 userSchema.statics.findWithRatings = async function(query = {}) {
   const users = await this.find(query);
   const Rating = mongoose.model('Rating');

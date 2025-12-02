@@ -152,11 +152,9 @@ export const closeBook = async (req, res) => {
     return res.status(403).json({ error: "Not authorized" });
   }
 
-  // Mark book as closed
   book.status = 'closed';
   await book.save();
 
-  // Reject all pending purchase requests for this book
   await PurchaseRequest.updateMany(
     { book: book._id, status: 'pending' },
     { status: 'rejected' }

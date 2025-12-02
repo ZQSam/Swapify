@@ -291,6 +291,12 @@ export const MessageAPI = {
 };
 
 export const PurchaseRequestAPI = {
+  create: (bookId: string, message?: string) =>
+    post<{ request: PurchaseRequest }>('/api/purchase-requests', { bookId, message }),
+
+  checkExisting: (bookId: string) =>
+    get<{ hasRequest: boolean; request: PurchaseRequest | null }>(`/api/purchase-requests/check/${bookId}`),
+
   complete: (id: string) =>
     patch<{ ok: true; purchaseRequest: PurchaseRequest; message: string }>(
       `/api/purchase-requests/${id}/complete`

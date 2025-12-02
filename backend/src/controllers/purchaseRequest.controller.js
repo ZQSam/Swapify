@@ -1,7 +1,76 @@
 import { PurchaseRequest } from "../models/PurchaseRequest.model.js";
 import { Book } from "../models/Book.model.js";
 
-// Complete a purchase request (seller only)
+export const createPurchaseRequest = async (req, res) => {
+  try {
+    const { bookId, message } = req.body;
+
+    if (!bookId) {
+      return res.status(400).json({ error: "Book ID is required" });
+    }
+
+    const book = await Book.findById(bookId);
+    if (!book) {
+      return res.status(404).json({ error: "Book not found" });
+    }
+
+    if (book.owner.toString() === req.user._id.toString()) {
+      return res.status(400).json({ error: "Cannot request your own book" });
+    }
+
+    if (book.status !== 'available') {
+      return res.status(400).json({ error: "Book not available" });
+    }
+
+    const existing = await PurchaseRequest.findOne({
+      book: bookId,
+      buyer: req.user._id,
+      status: 'pending'
+    });
+
+    if (existing) {
+      return res.status(400).json({ error: "Request already exists" });
+    }
+
+    const request = await PurchaseRequest.create({
+      book: bookId,
+      buyer: req.user._id,
+      seller: book.owner,
+      message
+    });
+
+    const populatedRequest = await PurchaseRequest.findById(request._id)
+      .populate("buyer", "nickname email")
+      .populate("seller", "nickname email")
+      .populate("book", "title author price image");
+
+    res.status(201).json({ request: populatedRequest });
+  } catch (error) {
+    console.error("Create purchase request error:", error);
+    res.status(500).json({ error: "Failed to create purchase request" });
+  }
+};
+
+export const checkExistingRequest = async (req, res) => {
+  try {
+    const { bookId } = req.params;
+
+    const existingRequest = await PurchaseRequest.findOne({
+      book: bookId,
+      buyer: req.user._id,
+      status: 'pending'
+    });
+
+    res.json({
+      hasRequest: !!existingRequest,
+      request: existingRequest
+    });
+  } catch (error) {
+    console.error("Check existing request error:", error);
+    res.status(500).json({ error: "Failed to check existing request" });
+  }
+};
+
 export const completePurchaseRequest = async (req, res) => {
   try {
     const { id } = req.params;
@@ -11,12 +80,10 @@ export const completePurchaseRequest = async (req, res) => {
       return res.status(404).json({ error: "Purchase request not found" });
     }
 
-    // Verify user is the seller
     if (pr.seller.toString() !== req.user._id.toString()) {
       return res.status(403).json({ error: "Only the seller can accept this request" });
     }
 
-    // Verify status is pending
     if (pr.status !== "pending") {
       return res.status(400).json({ error: "Can only accept pending requests" });
     }
@@ -47,7 +114,6 @@ export const completePurchaseRequest = async (req, res) => {
   }
 };
 
-// Reject a purchase request (seller only)
 export const rejectPurchaseRequest = async (req, res) => {
   try {
     const { id } = req.params;
@@ -57,12 +123,10 @@ export const rejectPurchaseRequest = async (req, res) => {
       return res.status(404).json({ error: "Purchase request not found" });
     }
 
-    // Verify user is the seller
     if (pr.seller.toString() !== req.user._id.toString()) {
       return res.status(403).json({ error: "Only the seller can reject this request" });
     }
 
-    // Verify status is pending
     if (pr.status !== "pending") {
       return res.status(400).json({ error: "Can only reject pending requests" });
     }
@@ -86,7 +150,6 @@ export const rejectPurchaseRequest = async (req, res) => {
   }
 };
 
-// Cancel a purchase request (buyer only)
 export const cancelPurchaseRequest = async (req, res) => {
   try {
     const { id } = req.params;
@@ -96,12 +159,10 @@ export const cancelPurchaseRequest = async (req, res) => {
       return res.status(404).json({ error: "Purchase request not found" });
     }
 
-    // Verify user is the buyer
     if (pr.buyer.toString() !== req.user._id.toString()) {
       return res.status(403).json({ error: "Only the buyer can cancel this request" });
     }
 
-    // Verify status is pending
     if (pr.status !== "pending") {
       return res.status(400).json({ error: "Can only cancel pending requests" });
     }

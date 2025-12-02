@@ -121,8 +121,7 @@ export default function ComponentsDemo() {
           </h2>
           <div style={{ display: 'flex', gap: '16px', marginBottom: '16px' }}>
             <Badge variant="available">Available</Badge>
-            <Badge variant="pending">Pending</Badge>
-            <Badge variant="sold">Sold</Badge>
+            <Badge variant="closed">Closed</Badge>
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
             <RatingStars rating={4.5} count={23} />
@@ -191,7 +190,7 @@ export default function ComponentsDemo() {
             courseCode="CS 225"
             price={45.0}
             condition="Good"
-            status="pending"
+            status="available"
             seller={{
               nickname: "Jane Smith",
               averageRating: 4.5,
@@ -205,7 +204,7 @@ export default function ComponentsDemo() {
             courseCode="CS 409"
             price={35.0}
             condition="Fair"
-            status="sold"
+            status="closed"
             seller={{
               nickname: "Bob Wilson",
               averageRating: 5.0,

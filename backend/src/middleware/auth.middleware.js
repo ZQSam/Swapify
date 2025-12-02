@@ -33,7 +33,6 @@ export const optionalAuth = async (req, res, next) => {
       if (user) req.user = user;
     }
   } catch (err) {
-    // ignore errors for optional auth
   }
   next();
 };

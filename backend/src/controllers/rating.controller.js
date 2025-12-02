@@ -11,18 +11,15 @@ const createRatingSchema = z.object({
 export const createRating = async (req, res) => {
   const { rateeId, score, comment } = createRatingSchema.parse(req.body);
 
-  // Check if ratee exists
   const rateeUser = await User.findById(rateeId);
   if (!rateeUser) {
     return res.status(404).json({ error: "User not found" });
   }
 
-  // Cannot rate yourself
   if (rateeId === req.user._id.toString()) {
     return res.status(400).json({ error: "Cannot rate yourself" });
   }
 
-  // Check if rating already exists
   const existing = await Rating.findOne({
     rater: req.user._id,
     ratee: rateeId
@@ -30,12 +27,10 @@ export const createRating = async (req, res) => {
 
   let rating;
   if (existing) {
-    // Update existing rating
     existing.score = score;
     existing.comment = comment;
     rating = await existing.save();
   } else {
-    // Create new rating
     rating = await Rating.create({
       rater: req.user._id,
       ratee: rateeId,
@@ -44,7 +39,6 @@ export const createRating = async (req, res) => {
     });
   }
 
-  // Recalculate average rating for ratee
   const ratings = await Rating.find({ ratee: rateeId });
   const avgRating = ratings.reduce((sum, r) => sum + r.score, 0) / ratings.length;
 

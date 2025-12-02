@@ -10,7 +10,6 @@ const ratingSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-// Ensure one user can only rate another user once
 ratingSchema.index({ rater: 1, ratee: 1 }, { unique: true });
 
 export const Rating = mongoose.model("Rating", ratingSchema);

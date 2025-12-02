@@ -3,13 +3,11 @@ import { User } from "../models/User.model.js";
 import { PurchaseRequest } from "../models/PurchaseRequest.model.js";
 import mongoose from "mongoose";
 
-// Send a text message
 export const sendMessage = async (req, res) => {
   try {
     const { receiverId, content } = req.body;
     const senderId = req.user._id;
 
-    // Validate inputs
     if (!receiverId || !content) {
       return res
         .status(400)
@@ -22,18 +20,15 @@ export const sendMessage = async (req, res) => {
         .json({ error: "Message content cannot exceed 2000 characters" });
     }
 
-    // Check if receiver exists
     const receiver = await User.findById(receiverId);
     if (!receiver) {
       return res.status(404).json({ error: "Receiver not found" });
     }
 
-    // Cannot send message to self
     if (senderId.toString() === receiverId) {
       return res.status(400).json({ error: "Cannot send message to yourself" });
     }
 
-    // Create message
     const message = await Message.create({
       sender: senderId,
       receiver: receiverId,
@@ -41,7 +36,6 @@ export const sendMessage = async (req, res) => {
       content,
     });
 
-    // Populate sender and receiver info
     await message.populate([
       { path: "sender", select: "nickname email" },
       { path: "receiver", select: "nickname email" },
@@ -54,26 +48,22 @@ export const sendMessage = async (req, res) => {
   }
 };
 
-// Send a purchase request message
 export const sendPurchaseRequestMessage = async (req, res) => {
   try {
     const { receiverId, purchaseRequestId, content } = req.body;
     const senderId = req.user._id;
 
-    // Validate inputs
     if (!receiverId || !purchaseRequestId) {
       return res.status(400).json({
         error: "Receiver ID and purchase request ID are required",
       });
     }
 
-    // Check if receiver exists
     const receiver = await User.findById(receiverId);
     if (!receiver) {
       return res.status(404).json({ error: "Receiver not found" });
     }
 
-    // Check if purchase request exists
     const purchaseRequest = await PurchaseRequest.findById(
       purchaseRequestId
     ).populate("book");
@@ -81,19 +71,16 @@ export const sendPurchaseRequestMessage = async (req, res) => {
       return res.status(404).json({ error: "Purchase request not found" });
     }
 
-    // Verify the sender is the buyer of this purchase request
     if (purchaseRequest.buyer.toString() !== senderId.toString()) {
       return res.status(403).json({
         error: "You can only send messages for your own purchase requests",
       });
     }
 
-    // Cannot send message to self
     if (senderId.toString() === receiverId) {
       return res.status(400).json({ error: "Cannot send message to yourself" });
     }
 
-    // Create message
     const message = await Message.create({
       sender: senderId,
       receiver: receiverId,
@@ -102,7 +89,6 @@ export const sendPurchaseRequestMessage = async (req, res) => {
       purchaseRequest: purchaseRequestId,
     });
 
-    // Populate all fields
     await message.populate([
       { path: "sender", select: "nickname email" },
       { path: "receiver", select: "nickname email" },
@@ -119,12 +105,10 @@ export const sendPurchaseRequestMessage = async (req, res) => {
   }
 };
 
-// Get all conversations for current user
 export const getConversations = async (req, res) => {
   try {
     const userId = req.user._id;
 
-    // Get all messages where user is sender or receiver
     const messages = await Message.find({
       $or: [{ sender: userId }, { receiver: userId }],
     })
@@ -132,11 +116,9 @@ export const getConversations = async (req, res) => {
       .populate("sender", "nickname email")
       .populate("receiver", "nickname email");
 
-    // Build conversations map
     const conversationsMap = new Map();
 
     for (const message of messages) {
-      // Determine the other user in the conversation
       const otherUser =
         message.sender._id.toString() === userId.toString()
           ? message.receiver
@@ -144,9 +126,7 @@ export const getConversations = async (req, res) => {
 
       const otherUserId = otherUser._id.toString();
 
-      // If this conversation not yet in map, add it
       if (!conversationsMap.has(otherUserId)) {
-        // Count unread messages from this user
         const unreadCount = await Message.countDocuments({
           sender: otherUser._id,
           receiver: userId,
@@ -170,7 +150,6 @@ export const getConversations = async (req, res) => {
       }
     }
 
-    // Convert map to array and sort by last message time
     const conversations = Array.from(conversationsMap.values());
 
     res.json({ conversations });
@@ -180,31 +159,27 @@ export const getConversations = async (req, res) => {
   }
 };
 
-// Get all messages with a specific user
 export const getMessagesWith = async (req, res) => {
   try {
     const userId = req.user._id;
     const { userId: otherUserId } = req.params;
 
-    // Validate other user ID
     if (!mongoose.Types.ObjectId.isValid(otherUserId)) {
       return res.status(400).json({ error: "Invalid user ID" });
     }
 
-    // Check if other user exists
     const otherUser = await User.findById(otherUserId);
     if (!otherUser) {
       return res.status(404).json({ error: "User not found" });
     }
 
-    // Get all messages between these two users
     const messages = await Message.find({
       $or: [
         { sender: userId, receiver: otherUserId },
         { sender: otherUserId, receiver: userId },
       ],
     })
-      .sort({ createdAt: 1 }) // Oldest first
+      .sort({ createdAt: 1 })
       .populate("sender", "nickname email")
       .populate("receiver", "nickname email")
       .populate({
@@ -216,7 +191,6 @@ export const getMessagesWith = async (req, res) => {
         ],
       });
 
-    // Mark all unread messages from other user as read
     await Message.updateMany(
       {
         sender: otherUserId,
@@ -233,31 +207,26 @@ export const getMessagesWith = async (req, res) => {
   }
 };
 
-// Mark a message as read
 export const markAsRead = async (req, res) => {
   try {
     const userId = req.user._id;
     const { messageId } = req.params;
 
-    // Validate message ID
     if (!mongoose.Types.ObjectId.isValid(messageId)) {
       return res.status(400).json({ error: "Invalid message ID" });
     }
 
-    // Find message
     const message = await Message.findById(messageId);
     if (!message) {
       return res.status(404).json({ error: "Message not found" });
     }
 
-    // Can only mark messages sent to you as read
     if (message.receiver.toString() !== userId.toString()) {
       return res
         .status(403)
         .json({ error: "You can only mark your own messages as read" });
     }
 
-    // Update read status
     message.read = true;
     await message.save();
 
@@ -268,7 +237,6 @@ export const markAsRead = async (req, res) => {
   }
 };
 
-// Get unread message count
 export const getUnreadCount = async (req, res) => {
   try {
     const userId = req.user._id;
