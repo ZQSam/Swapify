@@ -25,7 +25,7 @@ export default function SiteHeader() {
     };
 
     fetchUnreadCount();
-    const interval = setInterval(fetchUnreadCount, 10000); // Poll every 10 seconds
+    const interval = setInterval(fetchUnreadCount, 3000); // Poll every 3 seconds
 
     return () => clearInterval(interval);
   }, [isAuthenticated]);

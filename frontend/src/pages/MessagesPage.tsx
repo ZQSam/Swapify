@@ -64,6 +64,31 @@ export function MessagesPage() {
     }
   };
 
+  // Mark unread messages as read
+  const handleMarkAsRead = async () => {
+    if (!selectedUserId) return;
+
+    try {
+      // Find all unread messages from the other user
+      const unreadMessages = messages.filter(
+        (msg) => !msg.read && msg.sender._id !== user?.id
+      );
+
+      // Mark each unread message as read
+      for (const message of unreadMessages) {
+        await MessageAPI.markAsRead(message._id);
+      }
+
+      // If there were unread messages, refresh both conversations and messages
+      if (unreadMessages.length > 0) {
+        loadMessages(selectedUserId, true);
+        loadConversations();
+      }
+    } catch (error) {
+      console.error('Failed to mark messages as read:', error);
+    }
+  };
+
   // Select a conversation
   const handleSelectConversation = (userId: string) => {
     setSelectedUserId(userId);
@@ -88,22 +113,22 @@ export function MessagesPage() {
     }
   }, [userId, loadingConversations]);
 
-  // Polling for new messages
+  // Polling for new messages (right side)
   useEffect(() => {
     if (!selectedUserId) return;
 
     const interval = setInterval(() => {
       loadMessages(selectedUserId, true); // Silent polling
-    }, 7000); // Poll every 7 seconds
+    }, 3000); // Poll every 3 seconds
 
     return () => clearInterval(interval);
   }, [selectedUserId]);
 
-  // Polling for new conversations
+  // Polling for new conversations (left side)
   useEffect(() => {
     const interval = setInterval(() => {
       loadConversations();
-    }, 10000); // Poll every 10 seconds
+    }, 3000); // Poll every 3 seconds
 
     return () => clearInterval(interval);
   }, []);
@@ -193,6 +218,7 @@ export function MessagesPage() {
               currentUserId={user.id}
               onSendMessage={handleSendMessage}
               onRefresh={() => loadMessages(selectedUserId)}
+              onMarkAsRead={handleMarkAsRead}
               loading={loadingMessages}
             />
           ) : (

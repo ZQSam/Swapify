@@ -1,4 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { User } from 'lucide-react';
 import type { Message } from '../lib/api';
 import { MessageBubble } from './MessageBubble';
 import { PurchaseRequestCard } from './PurchaseRequestCard';
@@ -9,6 +11,7 @@ interface ChatWindowProps {
   currentUserId: string;
   onSendMessage: (content: string) => Promise<void>;
   onRefresh?: () => void;
+  onMarkAsRead?: () => void;
   loading: boolean;
 }
 
@@ -18,8 +21,10 @@ export function ChatWindow({
   currentUserId,
   onSendMessage,
   onRefresh,
+  onMarkAsRead,
   loading,
 }: ChatWindowProps) {
+  const navigate = useNavigate();
   const [inputValue, setInputValue] = useState('');
   const [sending, setSending] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -52,18 +57,23 @@ export function ChatWindow({
   };
 
   return (
-    <div style={{
-      display: 'flex',
-      flexDirection: 'column',
-      height: '100%',
-      width: '100%'
-    }}>
-      
+    <div
+      onClick={onMarkAsRead}
+      style={{
+        display: 'flex',
+        flexDirection: 'column',
+        height: '100%',
+        width: '100%'
+      }}>
+
       <div style={{
         padding: '20px 24px',
         borderBottom: '1px solid #e5e7eb',
         backgroundColor: '#ffffff',
-        flexShrink: 0
+        flexShrink: 0,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
       }}>
         <h2 style={{
           fontSize: '20px',
@@ -73,6 +83,32 @@ export function ChatWindow({
         }}>
           {otherUser.nickname}
         </h2>
+        <button
+          onClick={() => navigate(`/users/${otherUser.id}`)}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '6px',
+            padding: '8px 12px',
+            background: '#f3f4f6',
+            border: 'none',
+            borderRadius: '6px',
+            fontSize: '14px',
+            fontWeight: '500',
+            color: '#6b7280',
+            cursor: 'pointer',
+            transition: 'all 0.2s',
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.background = '#e5e7eb';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.background = '#f3f4f6';
+          }}
+        >
+          <User size={16} />
+          View Profile
+        </button>
       </div>
 
       
