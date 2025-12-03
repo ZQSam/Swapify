@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "main": "index.js",
   "type": "module",
+  "engines": { "node": "22.x" },
   "scripts": {
     "dev": "nodemon --watch src --ext js,mjs src/index.js",
     "start": "node src/index.js"
@@ -26,4 +27,5 @@
   "devDependencies": {
     "nodemon": "^3.1.11"
   }
+  
 }
