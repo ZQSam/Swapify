@@ -8,6 +8,10 @@ import jwt from "jsonwebtoken";
 import nodemailer from "nodemailer";
 import { customAlphabet } from "nanoid";
 
+app.get("/api/health", (_req, res) => {
+  res.json({ ok: true, env: process.env.NODE_ENV || "production", time: new Date().toISOString() });
+});
+
 const app = express();
 app.use(cors({ origin: process.env.CLIENT_ORIGIN?.split(",") || "*" }));
 app.use(express.json());
@@ -141,3 +145,5 @@ const PORT = process.env.PORT || 4000;
 mongoose.connect(process.env.MONGO_URI)
   .then(() => app.listen(PORT, () => console.log(`API on :${PORT}`)))
   .catch(err => { console.error(err); process.exit(1); });
+
+app.use((req, res) => res.status(404).json({ error: "Not found", path: req.path }));
