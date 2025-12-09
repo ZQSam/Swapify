@@ -43,6 +43,8 @@ VITE_API_URL=http://localhost:5000
 
 3. Seed the database with test data:
 
+> Warning! This will erase existing data in the connected database.
+
 ```bash
 cd backend
 npm run seed
