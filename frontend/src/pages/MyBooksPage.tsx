@@ -137,7 +137,13 @@ export default function MyBooksPage() {
           </div>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-            {books.map(book => (
+            {books
+              .sort((a, b) => {
+                if (a.status === 'available' && b.status === 'closed') return -1;
+                if (a.status === 'closed' && b.status === 'available') return 1;
+                return 0;
+              })
+              .map(book => (
               <div
                 key={book._id}
                 style={{
@@ -248,15 +254,16 @@ export default function MyBooksPage() {
                 }}>
                   <button
                     onClick={() => navigate(`/my-books/${book._id}/edit`)}
+                    disabled={book.status === 'closed'}
                     style={{
                       padding: '8px 16px',
-                      backgroundColor: 'var(--color-primary)',
-                      color: 'white',
+                      backgroundColor: book.status === 'closed' ? 'var(--color-gray-100)' : 'var(--color-primary)',
+                      color: book.status === 'closed' ? 'var(--color-gray-300)' : 'white',
                       border: 'none',
                       borderRadius: '6px',
                       fontSize: '14px',
                       fontWeight: 600,
-                      cursor: 'pointer',
+                      cursor: book.status === 'closed' ? 'not-allowed' : 'pointer',
                       display: 'flex',
                       alignItems: 'center',
                       gap: '6px',
