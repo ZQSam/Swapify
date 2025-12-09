@@ -81,29 +81,31 @@ export default function BooksPage() {
 
   // Apply client-side filters
   const filteredBooks = useMemo(() => {
-    return allBooks.filter(book => {
-      // Price filter
-      if (book.price < priceRange[0] || book.price > priceRange[1]) {
-        return false;
-      }
+    return allBooks
+      .filter(book => {
+        // Price filter
+        if (book.price < priceRange[0] || book.price > priceRange[1]) {
+          return false;
+        }
 
-      // Term filter
-      if (selectedTerms.size > 0 && !selectedTerms.has(book.term || '')) {
-        return false;
-      }
+        // Term filter
+        if (selectedTerms.size > 0 && !selectedTerms.has(book.term || '')) {
+          return false;
+        }
 
-      // Course filter
-      if (selectedCourses.size > 0 && !selectedCourses.has(book.courseCode)) {
-        return false;
-      }
+        // Course filter
+        if (selectedCourses.size > 0 && !selectedCourses.has(book.courseCode)) {
+          return false;
+        }
 
-      // Book title filter
-      if (selectedBooks.size > 0 && !selectedBooks.has(book.title)) {
-        return false;
-      }
+        // Book title filter
+        if (selectedBooks.size > 0 && !selectedBooks.has(book.title)) {
+          return false;
+        }
 
-      return true;
-    });
+        return true;
+      })
+      .sort((a, b) => a.price - b.price);
   }, [allBooks, priceRange, selectedTerms, selectedCourses, selectedBooks]);
 
   const toggleFilter = (set: Set<string>, value: string, setter: (s: Set<string>) => void) => {

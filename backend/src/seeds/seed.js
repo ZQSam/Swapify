@@ -67,21 +67,35 @@ async function seed() {
     const insertedUsers = await User.insertMany(usersData);
     console.log(`Inserted ${usersData.length} test users`);
 
+    // Create a mapping of unique books (by ISBN or title) to image indices
+    const uniqueBookMap = new Map();
+    let imageCounter = 1;
+
+    booksData.forEach((book) => {
+      const bookKey = book.isbn || book.title; // Use ISBN if available, otherwise title
+      if (!uniqueBookMap.has(bookKey)) {
+        uniqueBookMap.set(bookKey, imageCounter);
+        imageCounter++;
+      }
+    });
+
     // Load book cover images and convert to base64
-    const booksWithImages = booksData.map((book, index) => {
-      const imagePath = path.join(__dirname, 'images', `book${index + 1}.jpg`);
+    const booksWithImages = booksData.map((book) => {
+      const bookKey = book.isbn || book.title;
+      const imageIndex = uniqueBookMap.get(bookKey);
+      const imagePath = path.join(__dirname, 'images', `book${imageIndex}.jpg`);
       let imageBase64 = null;
 
       if (fs.existsSync(imagePath)) {
         try {
           const imageBuffer = fs.readFileSync(imagePath);
           imageBase64 = `data:image/jpeg;base64,${imageBuffer.toString('base64')}`;
-          console.log(`Loaded image for book ${index + 1}: ${book.title}`);
+          console.log(`Loaded image ${imageIndex} for book: ${book.title}`);
         } catch (error) {
-          console.warn(`Failed to load image for book ${index + 1}:`, error.message);
+          console.warn(`Failed to load image ${imageIndex} for book:`, error.message);
         }
       } else {
-        console.warn(`Image not found for book ${index + 1}: ${imagePath}`);
+        console.warn(`Image not found for book: ${imagePath}`);
       }
 
       return {
