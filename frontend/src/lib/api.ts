@@ -357,7 +357,7 @@ export const UserAPI = {
     get<{ ratings: Rating[] }>(`/api/users/${id}/ratings`),
 
   getExistingRating: (id: string) =>
-    get<{ existingRating: { _id: string; score: number; comment?: string } | null }>(`/api/users/${id}/existing-rating`),
+    get<{ existingRating: { _id: string; score: number; comment?: string } | null; canRate: boolean }>(`/api/users/${id}/existing-rating`),
 };
 
 export const RatingAPI = {

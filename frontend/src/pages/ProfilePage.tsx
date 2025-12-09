@@ -113,6 +113,7 @@ export default function ProfilePage() {
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [ratings, setRatings] = useState<Rating[]>([]);
   const [existingRating, setExistingRating] = useState<{ score: number; comment?: string } | null>(null);
+  const [canRate, setCanRate] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [submittingRating, setSubmittingRating] = useState(false);
@@ -161,6 +162,7 @@ export default function ProfilePage() {
     try {
       const response = await UserAPI.getExistingRating(id);
       setExistingRating(response.existingRating);
+      setCanRate(response.canRate);
     } catch (err) {
       console.error('Failed to load existing rating:', err);
     }
@@ -356,7 +358,7 @@ export default function ProfilePage() {
           )}
         </div>
 
-        {!isOwnProfile && id && (
+        {!isOwnProfile && id && canRate && (
           <div style={{
             backgroundColor: 'white',
             border: '1px solid var(--color-gray-100)',

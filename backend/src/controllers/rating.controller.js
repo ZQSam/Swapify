@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { Rating } from "../models/Rating.model.js";
 import { User } from "../models/User.model.js";
+import { PurchaseRequest } from "../models/PurchaseRequest.model.js";
 
 const createRatingSchema = z.object({
   rateeId: z.string(),
@@ -18,6 +19,18 @@ export const createRating = async (req, res) => {
 
   if (rateeId === req.user._id.toString()) {
     return res.status(400).json({ error: "Cannot rate yourself" });
+  }
+
+  const completedRequest = await PurchaseRequest.findOne({
+    $or: [
+      { buyer: req.user._id, seller: rateeId },
+      { buyer: rateeId, seller: req.user._id }
+    ],
+    status: 'completed'
+  });
+
+  if (!completedRequest) {
+    return res.status(403).json({ error: "You can only rate users you've completed transactions with" });
   }
 
   const existing = await Rating.findOne({
@@ -75,7 +88,7 @@ export const getExistingRating = async (req, res) => {
   }
 
   if (targetUserId === req.user._id.toString()) {
-    return res.json({ existingRating: null });
+    return res.json({ existingRating: null, canRate: false });
   }
 
   const existingRating = await Rating.findOne({
@@ -83,11 +96,20 @@ export const getExistingRating = async (req, res) => {
     ratee: targetUserId
   });
 
+  const completedRequest = await PurchaseRequest.findOne({
+    $or: [
+      { buyer: req.user._id, seller: targetUserId },
+      { buyer: targetUserId, seller: req.user._id }
+    ],
+    status: 'completed'
+  });
+
   res.json({
     existingRating: existingRating ? {
       _id: existingRating._id,
       score: existingRating.score,
       comment: existingRating.comment
-    } : null
+    } : null,
+    canRate: !!completedRequest
   });
 };

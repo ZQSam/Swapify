@@ -25,6 +25,10 @@ app.use(
   cors({
     origin(origin, cb) {
       if (!origin) return cb(null, true);
+      // In development, allow all localhost origins
+      if (process.env.NODE_ENV === "development" && origin?.startsWith("http://localhost:")) {
+        return cb(null, true);
+      }
       cb(null, allowed.includes(origin));
     },
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
