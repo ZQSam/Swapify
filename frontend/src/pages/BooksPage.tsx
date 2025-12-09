@@ -152,16 +152,28 @@ export default function BooksPage() {
       minHeight: '100vh',
       background: 'var(--color-gray-50)',
     }}>
-      <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '32px 24px' }}>
-        
-        <div style={{ marginBottom: '24px', display: 'flex', gap: '12px' }}>
+
+      <div style={{
+        backgroundColor: 'white',
+        borderBottom: '1px solid var(--color-gray-100)',
+        padding: '24px 0',
+        marginBottom: '32px'
+      }}>
+        <div style={{
+          margin: '0 auto',
+          padding: '0 24px',
+          maxWidth: '1000px',
+          display: 'flex',
+          gap: '12px'
+        }}>
           <Input
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
             placeholder="Search by course code, course name, book title, or ISBN..."
-            style={{ flex: 1 }}
+            style={{ flexGrow: 0 }}
+            fullWidth={true}
           />
           <button
             onClick={handleSearch}
@@ -189,8 +201,10 @@ export default function BooksPage() {
             Search
           </button>
         </div>
+      </div>
 
-        
+      <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 24px 32px' }}>
+
         <div style={{ display: 'flex', gap: '24px' }}>
           
           <div style={{ width: '280px', flexShrink: 0 }}>
@@ -248,9 +262,9 @@ export default function BooksPage() {
 
               
               {filterOptions.courses.length > 0 && (
-                <div style={{ marginBottom: '32px', minHeight: 0 }}>
-                  <h3 style={{ fontSize: '18px', fontWeight: 700, marginBottom: '16px' }}>Course</h3>
-                  <div style={{ maxHeight: '200px', overflowY: 'auto', paddingRight: '8px' }}>
+                <div style={{ marginBottom: '32px', minHeight: 0, flex: 1, display: 'flex', flexDirection: 'column' }}>
+                  <h3 style={{ fontSize: '18px', fontWeight: 700, marginBottom: '16px', flexShrink: 0 }}>Course</h3>
+                  <div style={{ flex: 1, minHeight: 0, overflowY: 'auto', paddingRight: '8px' }}>
                     {filterOptions.courses.map(course => (
                       <label key={course} style={{ display: 'flex', alignItems: 'center', marginBottom: '12px', cursor: 'pointer', userSelect: 'none' }}>
                         <input
@@ -268,9 +282,9 @@ export default function BooksPage() {
 
               
               {filterOptions.bookTitles.length > 0 && (
-                <div style={{ minHeight: 0 }}>
-                  <h3 style={{ fontSize: '18px', fontWeight: 700, marginBottom: '16px' }}>Book</h3>
-                  <div style={{ maxHeight: '200px', overflowY: 'auto', paddingRight: '8px' }}>
+                <div style={{ minHeight: 0, flex: 1, display: 'flex', flexDirection: 'column' }}>
+                  <h3 style={{ fontSize: '18px', fontWeight: 700, marginBottom: '16px', flexShrink: 0 }}>Book</h3>
+                  <div style={{ flex: 1, minHeight: 0, overflowY: 'auto', paddingRight: '8px' }}>
                     {filterOptions.bookTitles.map(title => (
                       <label key={title} style={{ display: 'flex', alignItems: 'center', marginBottom: '12px', cursor: 'pointer', userSelect: 'none' }}>
                         <input
