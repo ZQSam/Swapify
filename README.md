@@ -28,7 +28,7 @@ npm install
 
 **Backend** - Create `backend/.env`:
 ```env
-PORT=5000
+PORT=4000
 MONGO_URI=your_mongodb_connection_string
 JWT_SECRET=your_jwt_secret_key
 RESEND_API_KEY=your_resend_api_key
@@ -38,7 +38,7 @@ FRONTEND_URL=http://localhost:5173
 
 **Frontend** - Create `frontend/.env`:
 ```env
-VITE_API_URL=http://localhost:5000
+VITE_API_BASE=http://localhost:4000
 ```
 
 3. Seed the database with test data:
