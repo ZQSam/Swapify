@@ -1,6 +1,8 @@
 # Swapify
 
-A textbook exchange platform for UIUC students.
+A textbook exchange platform for UIUC students. For more details, see Project Proposal.pdf.
+
+For UI design, see UI Designs.pdf.
 
 ## Setup
 
